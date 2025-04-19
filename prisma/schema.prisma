@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// This Folder represent as Model folder as well.
+
+// The following notes explaining the relation between some schema:-
+/**
+ * -The relation between Admin and  Product is one-to-many relation.
+ * -The relation between Category and  Product is one-to-many relation.
+ * -The relation between Category and  Stock is one-to-one relation.
+ */
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Auth
+model Login {
+  id        String   @id @default(uuid())
+  userId    String  
+  userType  String
+  createdAt DateTime @default(now())
+}
+
+model Logout {
+  id        String   @id @default(uuid())
+  userId    String  
+  userType  String
+  createdAt DateTime @default(now())
+}
+
+
+model Register {
+  email           String @unique
+  name            String
+  password        String
+  confirmPassword String
+}
+
+
+
+// Types of Users
+
+// Admin 
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  role      String
+  refreshToken  String? @db.Text
+  products   Product[]
+  categories Category[]
+  stocks     Stock[]
+}
+
+// Customer
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+// Product
+model Product {
+  id          Int     @id @default(autoincrement())
+  name        String
+  price       String
+  description String?
+  qty         Int
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  owner   Admin  @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
+
+// Category
+model Category {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+  description   String?
+
+  products Product[]
+
+  stock Stock?
+
+  owner   Admin  @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
+
+// Stock
+model Stock {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  description   String?
+
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int      @unique
+
+  owner   Admin  @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
