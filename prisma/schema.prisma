@@ -25,18 +25,17 @@ datasource db {
 // Auth
 model Login {
   id        String   @id @default(uuid())
-  userId    String  
+  userId    String
   userType  String
   createdAt DateTime @default(now())
 }
 
 model Logout {
   id        String   @id @default(uuid())
-  userId    String  
+  userId    String
   userType  String
   createdAt DateTime @default(now())
 }
-
 
 model Register {
   email           String @unique
@@ -45,22 +44,20 @@ model Register {
   confirmPassword String
 }
 
-
-
 // Types of Users
 
 // Admin 
 model Admin {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  role      String
-  refreshToken  String? @db.Text
-  products   Product[]
-  categories Category[]
-  stocks     Stock[]
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  password     String
+  createdAt    DateTime   @default(now())
+  role         String
+  refreshToken String?    @db.Text
+  products     Product[]
+  categories   Category[]
+  stocks       Stock[]
 }
 
 // Customer
@@ -70,6 +67,8 @@ model Customer {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  role      String
+  refreshToken String?    @db.Text
 }
 
 // Product
@@ -89,9 +88,9 @@ model Product {
 
 // Category
 model Category {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique
-  description   String?
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
 
   products Product[]
 
@@ -103,10 +102,9 @@ model Category {
 
 // Stock
 model Stock {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-  description   String?
-
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int      @unique

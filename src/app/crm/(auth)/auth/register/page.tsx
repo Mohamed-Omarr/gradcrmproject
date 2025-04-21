@@ -50,7 +50,7 @@ export default function RegisterPage() {
     setIsSubmit(true);
     try {
       const res = await axios.post(
-        "/api/auth/register",
+        "/api/crm/auth/register",
         data,
       );
       toastingSuccess(res,()=>redirect("/crm/auth/login"));

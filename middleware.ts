@@ -40,19 +40,10 @@ export async function middleware(req:NextRequest) {
 
   // if token is present check if it is valid
   if (token && !(await verifying_current_token(token))) {
-
     // token is invalid or expired so remove the token from cookies and redirect user to auth routes
-    const res = NextResponse.redirect(new URL("/crm/auth/login", req.url));
-    
-    res.cookies.set('crm_token', '', {
-      httpOnly: true,
-      secure: false,
-      expires: new Date(0),
-      path: '/crm',
-      sameSite: "lax",
-    });
-  
-    return res;
+    const logoutUrl = new URL("/api/crm/auth/logout", req.url);
+    logoutUrl.searchParams.set("redirect", "/crm/auth/login");
+    return NextResponse.redirect(logoutUrl);
   }
 
   // token exists and valid prevent access to auth routes

@@ -3,14 +3,14 @@ import jwt from "jsonwebtoken";
 import "dotenv/config"
 import { NextApiResponse } from "next";
 import prisma from "../prismaClient/PrismaClient";
-type userType = {
+type userData = {
     id: string;
-    name: string;
     role: string;
+    name:string,
     email:string,
 }
 
-export const generateToken = async (adminData:userType,res:NextApiResponse) => {
+export const generateToken = async (user:userData,res:NextApiResponse) => {
     try {
         
         // secure the jwt secret
@@ -18,49 +18,60 @@ export const generateToken = async (adminData:userType,res:NextApiResponse) => {
             throw new Error ("missing the jwt secret variable")
         }
 
-        // const access_token_key  = process.env.ACCESS_TOKEN_KEY; // Keep this secure
+        const access_token_key  = process.env.ACCESS_TOKEN_KEY; // Keep this secure
 
         const refresh_token_key = process.env.REFRESH_TOKEN_KEY; // Keep this secure
 
-
         const payload = {
-            id: adminData.id,
+            id: user.id,
+            name:user.name,
+            role:user.role,
+            email:user.email,
         };
 
-        // const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "1m" });
+        const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "1s" });
 
-        const refreshToken = jwt.sign(payload, refresh_token_key, { expiresIn: "2m" });
-     
-        // save token in cookies - in future must change  secure to  secure:true
-        setCookie({res},'crm_token',refreshToken,{
-            httpOnly:true,
-            secure: false, //only for production 
-            maxAge: 60 * 60 * 24 * 7,
-            path:'/crm',
-            sameSite: "Lax",
-        })
+        const refreshToken = jwt.sign(payload, refresh_token_key, { expiresIn: "5m" });
         
-        // setCookie({res},'crm_refresh',refreshToken,{
-        //     httpOnly:true,
-        //     secure: false, //only for production 
-        //     maxAge: 60 * 60 * 24 * 7,
-        //     path:'/',
-        //     sameSite: "Lax",
-        // })
+        if (user.role === "ADMIN"){
+            // save token in cookies - in future must change  secure to  secure:true
+            setCookie({res},'crm_token',refreshToken,{
+                httpOnly:true,
+                secure: false, //only for production 
+                maxAge: 60 * 60 * 24 * 7,
+                path:'/',
+                sameSite: "Lax",
+            })
+            await prisma.admin.update({
+                where:{
+                    id:payload.id
+                },
+                data:{
+                    refreshToken,
+                }
+            })
+        }else{
 
+            // save token in cookies - in future must change  secure to  secure:true
+            setCookie({res},'shop_token',refreshToken,{
+                httpOnly:true,
+                secure: false, //only for production 
+                maxAge: 60 * 60 * 24 * 7,
+                path:'/',
+                sameSite: "Lax",
+            })
+            
+            await prisma.customer.update({
+                where:{
+                    id:payload.id
+                },
+                data:{
+                    refreshToken,
+                }
+            })
+        }
 
-        await prisma.admin.update({
-            where:{
-                id:payload.id
-            },
-            data:{
-                refreshToken,
-            }
-        })
-
-        // return res.status(201).json({message: "login success",accessToken}
-        return res.status(200).json({message: "login success"})
-
+        return res.status(200).json({message: "login success",accessToken})
     }catch(error) {
         return res.status(400).json({error:`Failed to generate token:${error}`})
     }

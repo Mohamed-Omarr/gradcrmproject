@@ -148,8 +148,7 @@ export const getCategory = async (req:NextApiRequest, res:NextApiResponse) => {
     try {
         
             const tokenData = await decodeToken(req.headers.authorization);
-
-
+            
             if(typeof tokenData !== "string"){
                 return res.status(401).json({message:" Invalid token ",error:tokenData.error})
             }

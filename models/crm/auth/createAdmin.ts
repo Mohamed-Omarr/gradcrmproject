@@ -2,7 +2,8 @@ import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
 interface adminData {
     name:string,
-    email:string
+    email:string,
+    hashedPassword:string,
 }
 
 export const createAdmin = async ( User:{data:adminData,hashedPassword:string} )=>{

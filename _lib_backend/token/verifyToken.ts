@@ -2,8 +2,9 @@ import "dotenv/config"
 import {  NextApiResponse } from "next"
 import jwt from "jsonwebtoken";
 import { getAdminInfo } from "../../models/crm/auth/getAdminInfo";
+import { getCustomerInfo } from "../../models/shop/auth/getCustomerInfo";
 
-export const verifyToken = async (res:NextApiResponse,token:string) => {
+export const verifyToken = async (res:NextApiResponse,token:string,userType:string) => {
     try {
         if (!process.env.REFRESH_TOKEN_KEY) {
             throw new Error ("Missing Secret JWT");
@@ -11,13 +12,24 @@ export const verifyToken = async (res:NextApiResponse,token:string) => {
         
         const verifiedToken = jwt.verify(token,process.env.REFRESH_TOKEN_KEY) as {id:string};
 
-        const user = await getAdminInfo(verifiedToken.id);
+        if (userType === "ADMIN") {
+            const user = await getAdminInfo(verifiedToken.id);
         
-        if (!user.success) {
-            return res.status(404).json({error:`User not found ${user.error}`})
+            if (!user.success) {
+                return {success:false,DBerror:user.error,status:404}
+            }
+            
+            return {success:true,user:user.data}
+
+        }else{
+            const user = await getCustomerInfo(verifiedToken.id);
+            if (!user.success) {
+                return {success:false,DBerror:user.error,status:404}
+            }
+            return {success:true,user:user.data}
         }
-        return res.status(200).json({ message: "User info retrieved", user:user.data });
+
     } catch(error){
-        return res.status(400).json({error:`processing failed verifying token: ${error}`})
+        return {success:false,error:`processing failed verifying token: ${error}`}
     }
 }
