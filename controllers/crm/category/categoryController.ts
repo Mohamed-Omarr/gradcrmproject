@@ -28,7 +28,7 @@ export const createCategory = async (req:NextApiRequest , res:NextApiResponse) =
             if(newCategory.success){
                 return res.status(201).json({message:"created category successfully",createdCategory:newCategory.addedCategory})
             }else {
-                return res.status(500).json({error:`${newCategory.error}`})
+                return res.status(400).json({error:`${newCategory.error}`})
             }
 
 
@@ -41,7 +41,7 @@ export const createCategory = async (req:NextApiRequest , res:NextApiResponse) =
         }
 
     } catch (error) {
-        return res.status(500).json({error:`Internal Server Error:${error}`})
+        return res.status(400).json({error:`Internal Server Error:${error}`})
     }
 
 }
@@ -68,7 +68,7 @@ export const deleteCategory = async (req:NextApiRequest, res:NextApiResponse) =>
             if (deleting.success) {
                 return res.status(200).json({message:"Deleted a category successfully "})
             }else {
-                return res.status(500).json({error:`${deleting.error}`})
+                return res.status(400).json({error:`${deleting.error}`})
             }
 
         }catch(error){
@@ -80,7 +80,7 @@ export const deleteCategory = async (req:NextApiRequest, res:NextApiResponse) =>
 
 
     } catch (error){
-        return res.status(500).json({error:`Internal Server Error:${error}`})
+        return res.status(400).json({error:`Internal Server Error:${error}`})
     }
 
 
@@ -121,7 +121,7 @@ export const updateCategory= async (req:NextApiRequest, res:NextApiResponse) => 
                 if(updateResult.success){
                     return res.status(200).json({message:" Updated category successfully ",updatedCategory:updateResult.category})
                 }else{
-                    return res.status(500).json({error:updateResult.error})
+                    return res.status(400).json({error:updateResult.error})
                 }
             }
             // to handle other cases 
@@ -137,7 +137,7 @@ export const updateCategory= async (req:NextApiRequest, res:NextApiResponse) => 
 
 
     } catch (error){
-        return res.status(500).json({error:`Internal Server Error:${error}`})
+        return res.status(400).json({error:`Internal Server Error:${error}`})
     }
 
 
@@ -158,11 +158,11 @@ export const getCategory = async (req:NextApiRequest, res:NextApiResponse) => {
             if(get_categories.success){
                 return res.status(200).json({message:" Fetched all categories successfully ",categories:get_categories.categories})
             } else {
-                return res.status(500).json({error:get_categories.error})
+                return res.status(400).json({error:get_categories.error})
             }
 
     } catch (error) {
-        return res.status(500).json({error:`Internal Server Error:${error}`})
+        return res.status(400).json({error:`Internal Server Error:${error}`})
     }
 
 }

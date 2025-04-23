@@ -1,9 +1,21 @@
+import axios from "axios";
 import React from "react";
 
-function ShopByCategories() {
+async function FetchData () {
+  try {
+    const res = await axios.get("/api/shop/product/categoryMethods");
+    return res.data.categories;
+  }catch(err) {
+    throw new Error(`Failed Fetching Products: ${err}`)
+  }
+};
+
+
+async function ShopByCategories() {
+  // const category = await FetchData();
   return (
-    <div className="flex flex-col items-start py-12 pl-40 max-md:pl-5">
-      <div className="gap-10 self-stretch max-w-full text-4xl font-medium tracking-tight leading-none text-zinc-800 w-[1120px]">
+    <div className="flex flex-col items-start">
+      <div className="gap-10 self-stretch max-w-full text-4xl font-medium tracking-tight leading-none text-center text-zinc-800 w-[1120px]">
         Shop by Categories
       </div>
       <div className="flex flex-wrap gap-6 items-start mt-12 max-md:mt-10 max-md:max-w-full">

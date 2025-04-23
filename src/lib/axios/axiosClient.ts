@@ -3,7 +3,7 @@ import axios from "axios";
 import { jwtDecode } from 'jwt-decode';
 import { frequentExit } from "../../../_lib_backend/token/frequentExit";
 
-const axiosAdmin = axios.create({
+const axiosClient = axios.create({
   baseURL: "http://localhost:3000/api/",
   withCredentials: true,
 });
@@ -21,7 +21,7 @@ function addRefreshedSubscriber(callback: (token:string) => void) {
 }
 
 
-axiosAdmin.interceptors.request.use(
+axiosClient.interceptors.request.use(
   async (config) => {   
 
     if (typeof window ==="undefined") return config;
@@ -80,7 +80,7 @@ axiosAdmin.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-axiosAdmin.interceptors.response.use(
+axiosClient.interceptors.response.use(
   (res) => res,
   async (err) => {
 
@@ -95,4 +95,4 @@ axiosAdmin.interceptors.response.use(
 );
 
 
-export default axiosAdmin;
+export default axiosClient;
