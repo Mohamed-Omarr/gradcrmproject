@@ -1,10 +1,9 @@
 import "dotenv/config"
-import {  NextApiResponse } from "next"
 import jwt from "jsonwebtoken";
 import { getAdminInfo } from "../../models/crm/auth/getAdminInfo";
-import { getCustomerInfo } from "../../models/shop/auth/getCustomerInfo";
+import { getCustomerInfoDB } from "../../models/shop/auth/getCustomerInfoModel";
 
-export const verifyToken = async (res:NextApiResponse,token:string,userType:string) => {
+export const verifyToken = async (token:string,userType:string) => {
     try {
         if (!process.env.REFRESH_TOKEN_KEY) {
             throw new Error ("Missing Secret JWT");
@@ -22,7 +21,7 @@ export const verifyToken = async (res:NextApiResponse,token:string,userType:stri
             return {success:true,user:user.data}
 
         }else{
-            const user = await getCustomerInfo(verifiedToken.id);
+            const user = await getCustomerInfoDB(verifiedToken.id);
             if (!user.success) {
                 return {success:false,DBerror:user.error,status:404}
             }

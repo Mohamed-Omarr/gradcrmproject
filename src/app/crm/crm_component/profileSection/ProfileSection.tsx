@@ -15,9 +15,9 @@ import {
   AvatarImage,
 } from "../../../../components/ui/avatar";
 import { User } from "lucide-react";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
-import axiosClient from "@/lib/axiosClient";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
+import axiosAdmin from "@/lib/axios/axiosAdmin";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import ConfirmationPopup from "../confirmation_popup/ConfirmationPopup";
 import { validationUpdateUsername } from "../../../../../_lib_backend/validation/updatingUserInfoValidation";
 
@@ -28,7 +28,7 @@ function ProfileSection(AdminInfo: {
 }) {
   const [new_Name, setNew_Name] = useState<string>("");
   const [showPopup, setShowPopup] = useState<boolean>(false);
-  
+
   const newData = {
     previousName: AdminInfo.name,
     newName: new_Name,
@@ -46,7 +46,7 @@ function ProfileSection(AdminInfo: {
 
   const onSubmit = async () => {
     try {
-      const res = await axiosClient.post("crm/profile/updateAdminName", {
+      const res = await axiosAdmin.post("crm/profile/updateAdminName", {
         id: AdminInfo.id,
         previousName: newData.previousName,
         newName: new_Name,

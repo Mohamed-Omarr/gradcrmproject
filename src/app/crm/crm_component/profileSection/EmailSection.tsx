@@ -12,10 +12,10 @@ import { Button } from "../../../../components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { validationUpdateEmail } from "../../../../../_lib_backend/validation/updatingUserInfoValidation";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 import ConfirmationPopup from "../confirmation_popup/ConfirmationPopup";
-import axiosClient from "@/lib/axiosClient";
+import axiosAdmin from "@/lib/axios/axiosAdmin";
 
 function EmailSection(AdminInfo: { email: string; id: string }) {
   const [showPopup, setShowPopup] = useState<boolean>(false);
@@ -31,14 +31,13 @@ function EmailSection(AdminInfo: { email: string; id: string }) {
     defaultValues: {
       newEmail: "",
       password: "",
-      previousEmail:AdminInfo.email,
+      previousEmail: AdminInfo.email,
     },
     resolver: zodResolver(validationUpdateEmail),
   });
 
   const new_Email = watch("newEmail");
   const password = watch("password");
-
 
   const valid = () => {
     try {
@@ -55,7 +54,7 @@ function EmailSection(AdminInfo: { email: string; id: string }) {
     setIsLoading(true);
     try {
       const newData = getValues();
-      const res = await axiosClient.post("crm/profile/updateEmail", {
+      const res = await axiosAdmin.post("crm/profile/updateEmail", {
         id: AdminInfo.id,
         previousEmail: newData.previousEmail,
         newEmail: newData.newEmail,

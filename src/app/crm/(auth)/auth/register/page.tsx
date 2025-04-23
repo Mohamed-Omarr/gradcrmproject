@@ -15,8 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { useEffect, useState } from "react";
 import { ValidateUserRegister } from "../../../../../../_lib_backend/validation/authValidation";
 import axios from "axios";
@@ -49,11 +49,8 @@ export default function RegisterPage() {
   const onSubmit = async (data: registerForm) => {
     setIsSubmit(true);
     try {
-      const res = await axios.post(
-        "/api/crm/auth/register",
-        data,
-      );
-      toastingSuccess(res,()=>redirect("/crm/auth/login"));
+      const res = await axios.post("/api/crm/auth/register", data);
+      toastingSuccess(res, () => redirect("/crm/auth/login"));
     } catch (error) {
       toastingError(error);
     } finally {
@@ -62,10 +59,9 @@ export default function RegisterPage() {
     }
   };
 
-  
-    useEffect(()=>{
-      localStorage.removeItem("access_token");
-    },[])
+  useEffect(() => {
+    localStorage.removeItem("access_token");
+  }, []);
 
   return (
     <form

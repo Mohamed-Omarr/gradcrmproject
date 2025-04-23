@@ -22,9 +22,9 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
-import axiosClient from "@/lib/axiosClient";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
+import axiosAdmin from "@/lib/axios/axiosAdmin";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { useAdminInfo } from "@/hooks/share-admin-context";
 
 export default function Products() {
@@ -51,7 +51,7 @@ export default function Products() {
 
   const get_category_data = async () => {
     try {
-      const res = await axiosClient.get("crm/category/categoryMethods");
+      const res = await axiosAdmin.get("crm/category/categoryMethods");
       setCategories(res.data.categories);
     } catch (err) {
       toastingError(err);
@@ -60,7 +60,7 @@ export default function Products() {
 
   const get_product_data = async () => {
     try {
-      const res = await axiosClient.get("crm/product/productMethods");
+      const res = await axiosAdmin.get("crm/product/productMethods");
       setProduct(res.data.products);
     } catch (err) {
       toastingError(err);
@@ -81,7 +81,7 @@ export default function Products() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
     try {
-      const res = await axiosClient.post("crm/product/productMethods", {
+      const res = await axiosAdmin.post("crm/product/productMethods", {
         name: getName,
         description: getDesc,
         price: getPrice,
@@ -114,7 +114,7 @@ export default function Products() {
 
   const onDelete = async (itemId: string) => {
     try {
-      const res = await axiosClient.delete("crm/product/productMethods", {
+      const res = await axiosAdmin.delete("crm/product/productMethods", {
         data: {
           id: itemId,
           ownerId: admin_info?.id,
@@ -131,7 +131,7 @@ export default function Products() {
     e.preventDefault(); // Prevent default form submission
 
     try {
-      const res = await axiosClient.patch("crm/product/productMethods", {
+      const res = await axiosAdmin.patch("crm/product/productMethods", {
         id: updateFollowingId,
         ownerId: admin_info?.id,
         name: getName,

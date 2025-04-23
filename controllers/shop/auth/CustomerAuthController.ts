@@ -8,9 +8,9 @@ import { generateToken } from "../../../_lib_backend/token/generateToken";
 import { verifyToken } from "../../../_lib_backend/token/verifyToken";
 import { deleteToken } from "../../../_lib_backend/token/deleteToken";
 import jwt from "jsonwebtoken";
-import { createCustomer } from "../../../models/shop/auth/createCustomer";
-import { customerLogging } from "../../../models/shop/auth/customerLogin";
 import { customerLogoutDB } from "../../../models/shop/auth/customerLogoutModel";
+import { createCustomerDB } from "../../../models/shop/auth/createCustomerModel";
+import { customerLoginDB } from "../../../models/shop/auth/customerLoginModel";
 
 export const customer_register = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
@@ -28,7 +28,7 @@ export const customer_register = async (req:NextApiRequest , res:NextApiResponse
 
             if (scan) {return res.status(400).json({error:`Email exits`})}
 
-            const pushingDB = await createCustomer(user)
+            const pushingDB = await createCustomerDB(user)
 
             if (pushingDB.success){
                 return res.status(201).json({message:"User register successfully"})
@@ -69,7 +69,7 @@ export const customer_login = async (req:NextApiRequest,res:NextApiResponse) => 
                 name:user.name,
             }
             //  await prisma model
-            const pushingDB = await customerLogging(limitAccess.id,limitAccess.role);
+            const pushingDB = await customerLoginDB(limitAccess.id,limitAccess.role);
 
             if(pushingDB.success){
                 // await generate the token
@@ -164,7 +164,7 @@ export const info_of_customer = async (req:NextApiRequest,res:NextApiResponse) =
         }
         const decoded = jwt.decode(token) as {role:string}
 
-        const result = await verifyToken(res,token,decoded.role);
+        const result = await verifyToken(token,decoded.role);
 
         if (!result.success && result.status){
             return res.status(result.status).json({message:"User not found",error:result.DBerror})

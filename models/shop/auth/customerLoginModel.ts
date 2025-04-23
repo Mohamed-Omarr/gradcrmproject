@@ -1,7 +1,7 @@
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
 
-export const customerLogging = async (userId:string,userRole:string) => {
+export const customerLoginDB = async (userId:string,userRole:string) => {
     try {
         prisma.login.create({
             data:{

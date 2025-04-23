@@ -1,6 +1,6 @@
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
-export const getCustomerInfo = async ( userId:string )=>{
+export const getCustomerInfoDB = async ( userId:string )=>{
         try{
             const user = await  prisma.customer.findUnique({
                 where:{

@@ -99,7 +99,8 @@ export const logoutUser = async (req:NextApiRequest,res:NextApiResponse) => {
             const user_logging_out = await userLogout(user.id,user.role);
 
             if(user_logging_out.success){
-                await deleteToken(res);
+                deleteToken(res,user.role);
+                return res.status(200).json({message:"Logout Successfully"})
             }else{
                 return res.status(400).json({error:`Failed logging out: ${user_logging_out.error}`})
             }
@@ -140,7 +141,7 @@ export const frequentLogout = async (req:NextApiRequest,res:NextApiResponse) => 
         }),
       ]);
 
-      deleteToken(res); // remove cookie
+      deleteToken(res,user.role); // remove cookie
     } catch (err) {
       console.error("GET Logout error:", err);
     }
@@ -156,7 +157,16 @@ export const info_of_user = async (req:NextApiRequest,res:NextApiResponse) => {
         if (!token) {
             return res.status(401).json("Not Authorized User");
         }
-        await verifyToken(res,token); 
+        
+        const decoded = jwt.decode(token) as {role:string}
+        
+        const result = await verifyToken(token,decoded.role); 
+        if (!result.success && result.status){
+            return res.status(result.status).json({message:"User not found",error:result.DBerror})
+        }else if (!result.success){
+            return res.status(401).json({message:"Not Authorized",error:result.error})
+        }
+        return res.status(200).json({message:"Received Info",user:result.user})
     } catch(error) {
         return res.status(500).json({error:`Internal Server Error:${error}`})
     }

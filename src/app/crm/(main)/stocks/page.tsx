@@ -22,10 +22,10 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
-import axiosClient from "@/lib/axiosClient";
+import axiosAdmin from "@/lib/axios/axiosAdmin";
 import { useAdminInfo } from "@/hooks/share-admin-context";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 
 export default function Stocks() {
   const [getName, setGetName] = useState<string>("");
@@ -49,7 +49,7 @@ export default function Stocks() {
 
   const get_category_data = async () => {
     try {
-      const res = await axiosClient.get("crm/category/categoryMethods");
+      const res = await axiosAdmin.get("crm/category/categoryMethods");
 
       setCategories(res.data.categories);
     } catch (err) {
@@ -59,7 +59,7 @@ export default function Stocks() {
 
   const get_stock_data = async () => {
     try {
-      const res = await axiosClient.get("crm/stock/stockMethods");
+      const res = await axiosAdmin.get("crm/stock/stockMethods");
       get_category_data();
       setStocks(res.data.stocks);
     } catch (err) {
@@ -81,7 +81,7 @@ export default function Stocks() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
     try {
-      const res = await axiosClient.post("crm/stock/stockMethods", {
+      const res = await axiosAdmin.post("crm/stock/stockMethods", {
         name: getName,
         description: getDesc,
         ownerId: admin_info?.id,
@@ -111,7 +111,7 @@ export default function Stocks() {
 
   const onDelete = async (itemId: string) => {
     try {
-      const res = await axiosClient.delete("crm/stock/stockMethods", {
+      const res = await axiosAdmin.delete("crm/stock/stockMethods", {
         data: {
           id: itemId,
           ownerId: admin_info?.id,
@@ -129,7 +129,7 @@ export default function Stocks() {
     e.preventDefault(); // Prevent default form submission
 
     try {
-      const res = await axiosClient.patch("crm/stock/stockMethods", {
+      const res = await axiosAdmin.patch("crm/stock/stockMethods", {
         id: updateFollowingId,
         ownerId: admin_info?.id,
         name: getName,

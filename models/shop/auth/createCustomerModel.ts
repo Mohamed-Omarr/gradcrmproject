@@ -6,7 +6,7 @@ interface customerData {
     hashedPassword:string
 }
 
-export const createCustomer = async ( User:{data:customerData,hashedPassword:string} )=>{
+export const createCustomerDB = async ( User:{data:customerData,hashedPassword:string} )=>{
     try{
         await prisma.$transaction([
             prisma.register.create({

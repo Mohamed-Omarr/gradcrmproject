@@ -25,13 +25,13 @@ export const refreshingToken = async (req:NextApiRequest , res:NextApiResponse) 
 
         const decoded = jwt.verify(incomingRefreshToken,refresh_token_key) as {id:string};
 
-        const user = await prisma.admin.findFirst({
+        const user = await prisma.customer.findFirst({
             where:{id:decoded.id},
             select:{id:true,refreshToken:true}
         });
 
         if (!user || user.refreshToken !== incomingRefreshToken) {
-            await prisma.admin.update({
+            await prisma.customer.update({
                 where:{id:decoded.id},
                 data:{refreshToken:null}
             })

@@ -1,8 +1,15 @@
+import BestSeller from "./ShopComponents/BestSeller";
+import Hero from "./ShopComponents/Hero";
+import NewArrivals from "./ShopComponents/NewArrivals";
+import ShopByCategories from "./ShopComponents/ShopByCategories";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      home page of shop
+    <div className=" min-h-screen">
+      <Hero />
+      <ShopByCategories/>
+      <NewArrivals/>
+      <BestSeller/>
     </div>
   );
 }

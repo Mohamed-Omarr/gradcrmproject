@@ -1,9 +1,9 @@
 
 import axios from "axios";
 import { jwtDecode } from 'jwt-decode';
-import { frequentExit } from "../../_lib_backend/token/frequentExit";
+import { frequentExit } from "../../../_lib_backend/token/frequentExit";
 
-const axiosClient = axios.create({
+const axiosAdmin = axios.create({
   baseURL: "http://localhost:3000/api/",
   withCredentials: true,
 });
@@ -21,17 +21,17 @@ function addRefreshedSubscriber(callback: (token:string) => void) {
 }
 
 
-axiosClient.interceptors.request.use(
+axiosAdmin.interceptors.request.use(
   async (config) => {   
 
     if (typeof window ==="undefined") return config;
 
       try {
-        const accessToken = localStorage.getItem("access_token");
+        const AccessToken = localStorage.getItem("AccessToken");
         
-        if (!accessToken) return config;
+        if (!AccessToken) return config;
 
-          const decoded = jwtDecode<{exp?:number}>(accessToken);
+          const decoded = jwtDecode<{exp?:number}>(AccessToken);
           console.log(decoded.exp );
           
           const isExpired= decoded.exp ? decoded.exp * 1000 < Date.now():true ;
@@ -49,10 +49,10 @@ axiosClient.interceptors.request.use(
               if (!isRefresh){
                 isRefresh = true;
                 try{
-                  const { data } = await axios.post("/api/crm/auth/refreshToken");
-                  config.headers.Authorization = `Bearer ${data.accessToken}`;
-                  localStorage.setItem("access_token", data.accessToken);
-                  onRefreshed(data.accessToken)
+                  const { data } = await axios.post("/api/shop/auth/refreshToken");
+                  config.headers.Authorization = `Bearer ${data.AccessToken}`;
+                  localStorage.setItem("AccessToken", data.AccessToken);
+                  onRefreshed(data.AccessToken)
                   console.log("done refresh token")
                 }catch(err){
                   frequentExit();
@@ -65,7 +65,7 @@ axiosClient.interceptors.request.use(
             await retryOriginalRequest;
             return config;
           }
-          config.headers.Authorization = `Bearer ${accessToken}`;
+          config.headers.Authorization = `Bearer ${AccessToken}`;
       } catch (err) {
         console.log("vialed access Token error- must log out the user right now:", err);
         frequentExit();
@@ -80,13 +80,13 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-axiosClient.interceptors.response.use(
+axiosAdmin.interceptors.response.use(
   (res) => res,
   async (err) => {
 
     // If token is expired 
     if (err.response?.status === 401) {
-      localStorage.removeItem("access_token");
+      localStorage.removeItem("AccessToken");
       frequentExit();
     }
   
@@ -95,4 +95,4 @@ axiosClient.interceptors.response.use(
 );
 
 
-export default axiosClient;
+export default axiosAdmin;

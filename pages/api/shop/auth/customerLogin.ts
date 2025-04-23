@@ -1,5 +1,5 @@
 import { NextApiRequest , NextApiResponse } from "next";
-import { customer_login } from "../../../../controllers/shop/auth/authControllerCustomer";
+import { customer_login } from "../../../../controllers/shop/auth/CustomerAuthController";
 
 export default async function handleLogin(req:NextApiRequest , res:NextApiResponse) {
     

@@ -16,9 +16,9 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { redirect } from "next/navigation";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { ValidateUserLogin } from "../../../../../../_lib_backend/validation/authValidation";
 import axios from "axios";
 
@@ -46,8 +46,8 @@ export default function LoginPage() {
     setIsSubmit(true);
     try {
       const res = await axios.post("/api/crm/auth/login", data);
-      localStorage.setItem("access_token",res.data.accessToken)
-      toastingSuccess(res,()=>redirect("/crm/dashboard"));
+      localStorage.setItem("access_token", res.data.accessToken);
+      toastingSuccess(res, () => redirect("/crm/dashboard"));
     } catch (error) {
       toastingError(error);
     } finally {
@@ -56,9 +56,9 @@ export default function LoginPage() {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     localStorage.removeItem("access_token");
-  },[])
+  }, []);
 
   return (
     <form

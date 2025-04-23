@@ -12,9 +12,9 @@ import { Label } from "@radix-ui/react-label";
 import { Button } from "../../../../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import { Check } from "lucide-react";
-import axiosClient from "@/lib/axiosClient";
-import { toastingSuccess } from "@/lib/crm_api_toast/toastingSuccess";
-import { toastingError } from "@/lib/crm_api_toast/toastingErrors";
+import axiosAdmin from "@/lib/axios/axiosAdmin";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { validationUpdatePassword } from "../../../../../_lib_backend/validation/updatingUserInfoValidation";
 import { useForm } from "react-hook-form";
@@ -62,7 +62,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
         email: AdminInfo.email,
       };
 
-      const res = await axiosClient.post("crm/profile/updatePassword", {
+      const res = await axiosAdmin.post("crm/profile/updatePassword", {
         id: AdminInfo.id,
         email: AdminInfo.email,
         currentPassword: newData.currentPassword,

@@ -14,14 +14,14 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAdminInfo } from "@/hooks/share-admin-context";
 import { useRouter } from "next/navigation";
-import axiosClient from "@/lib/axiosClient";
+import axiosAdmin from "@/lib/axios/axiosAdmin";
 
 export function Header() {
   const admin_info = useAdminInfo();
   const router = useRouter();
 
   const onLogout = async () => {
-    await axiosClient
+    await axiosAdmin
       .post("crm/auth/logout", {
         userId: admin_info?.id,
         userRole: admin_info?.role,
