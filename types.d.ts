@@ -84,3 +84,20 @@ type logout = {
     userId:string;
     userRole:string,
 }
+
+
+type ShopProduct = {
+    id: number;
+    name: string;
+    price: number;
+    description: string | null;
+    qty: number;
+    ownerId: string;
+    category: ShopCategory,
+}
+
+type ShopCategory = {
+    id: number;
+    name: string;
+    products:ShopProduct[] ;
+}

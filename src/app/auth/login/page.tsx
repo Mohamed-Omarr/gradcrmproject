@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import CarImage from "../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg";
+import CarImage from "../../../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg"
 import Image from "next/image";
 
 function Login() {

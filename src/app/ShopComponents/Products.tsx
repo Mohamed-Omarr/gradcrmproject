@@ -1,50 +1,69 @@
-import axios from 'axios';
-import React from 'react'
-
-async function FetchData () {
-  try {
-    const res = await axios.get("/api/shop/product/productMethods");
-    return res.data.products;
-  }catch(err) {
-    throw new Error(`Failed Fetching Products: ${err}`)
+import Link from "next/link";
+import Image from "next/image";
+import { ShoppingCart } from "lucide-react";
+import { Heart } from "lucide-react";
+function Products({ product }: { product: ShopProduct[] }) {
+  if (!product || product.length === 0) {
+    return <div>No product available</div>;
   }
-};
 
-function Products() {
-  // const product = await FetchData();
   return (
-    <div className="flex flex-col max-w-[262px]">
-      <div className="flex flex-col w-full text-base font-bold leading-none text-center uppercase whitespace-nowrap text-neutral-900">
-        <div className="flex rounded-md relative flex-col items-start px-4 pt-4 pb-80 w-full aspect-[0.751]">
-          <img
-            loading="lazy"
-            srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/969110fba45f3ac8dc379f3bddb455b9bb15ebf3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-            className="object-cover absolute inset-0 size-full rounded-md"
-          />
-          <div className="flex relative flex-col mb-0">
-            <div className="gap-2 self-stretch px-3.5 py-1 bg-white rounded">
-              NEW
+    <>
+      {product.map((item) => (
+        <div
+          key={item.id}
+          className="group relative rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-1 max-w-[400px] duration-300"
+        >
+          {/* Wishlist button */}
+          <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button className="rounded-full bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
+              {/* Heart icon */}
+              <Heart />
+            </button>
+          </div>
+
+          {/* Product image */}
+          <Link href={`/product`}>
+            <div className="bg-gray-50">
+              <Image
+                src="/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg"
+                alt="Product image"
+                width={220}
+                height={330}
+                className="h-[330px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
             </div>
+          </Link>
+
+          {/* Product details */}
+          <div className="p-4 space-y-2">
+            {/* Rating */}
+            {/* <div className="flex items-center space-x-1 text-yellow-400">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className="text-yellow-400"/>
+              ))}
+              <span className="ml-1 text-xs text-gray-600">rating</span>
+            </div> */}
+
+            {/* Product name */}
+            <h3 className="text-sm font-semibold line-clamp-1 text-gray-900">
+              {item.name}
+            </h3>
+
+            {/* Price */}
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-bold text-gray-900">${item.price}</p>
+            </div>
+
+            {/* Add to cart button */}
+            <button className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
+              <ShoppingCart  /> Add to Cart
+            </button>
           </div>
         </div>
-      </div>
-      <div className="flex flex-col mt-3 w-full font-semibold">
-        <div className="flex flex-col items-start w-full">
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/1556cbdb003e44ba64493fe6c76b329ad26a011f?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-            className="object-contain aspect-[5.49] w-[88px]"
-          />
-          <div className="self-stretch mt-1 text-base leading-7 text-neutral-900">
-            Paradigm Chilliwack Black Label Jacket
-          </div>
-          <div className="gap-3 mt-1 text-sm leading-loose whitespace-nowrap text-neutral-900">
-            $349.99
-          </div>
-        </div>
-      </div>
-    </div>
+      ))}
+    </>
   );
 }
 
-export default Products
+export default Products;

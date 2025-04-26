@@ -5,11 +5,11 @@ import { NextApiRequest , NextApiResponse } from "next";
 import { parseCookies } from 'nookies';
 import prisma from "../prismaClient/PrismaClient";
 
-export const refreshingToken = async (req:NextApiRequest , res:NextApiResponse) => {
+export const shopRefreshingToken = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
         const cookies = parseCookies({req});
 
-        const incomingRefreshToken = cookies.crm_token;
+        const incomingRefreshToken = cookies.shop_token;
         
         if (!incomingRefreshToken) {
             return res.status(401).json({ message: 'No refresh token' }); 
@@ -38,7 +38,7 @@ export const refreshingToken = async (req:NextApiRequest , res:NextApiResponse) 
             return res.status(401).json({ message: 'Refresh token reuse detected. Logged out.' });
         }
 
-        const newAccessToken = jwt.sign({id:user.id}, access_token_key, { expiresIn: "1s" });
+        const newAccessToken = jwt.sign({id:user.id}, access_token_key, { expiresIn: "15m" });
 
         return res.status(200).json({ accessToken: newAccessToken });
 

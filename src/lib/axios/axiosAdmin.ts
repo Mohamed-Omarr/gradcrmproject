@@ -32,7 +32,6 @@ axiosAdmin.interceptors.request.use(
         if (!accessToken) return config;
 
           const decoded = jwtDecode<{exp?:number}>(accessToken);
-          console.log(decoded.exp );
           
           const isExpired= decoded.exp ? decoded.exp * 1000 < Date.now():true ;
             

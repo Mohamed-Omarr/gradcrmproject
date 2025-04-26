@@ -1,43 +1,62 @@
+import { Search, ShoppingCart, User } from "lucide-react";
+import Image from "next/image";
 import React from "react";
-import {
-  ArrowDownIcon,
-  CartIcon,
-  ProfileIcon,
-  SearchIcon,
-} from "../../../public/svg/icons";
+import CarImage from "../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg";
+import Link from "next/link";
 
 function Header() {
   return (
-    <header className="flex items-center justify-between w-full bg-[#F8F9FA] px-40 py-4">
-      {/* Left: Logo */}
-      <div className="flex items-center text-2xl font-medium text-black">
-        <span>Max</span>
-        <span className="text-zinc-500">.</span>
-      </div>
-
-      {/* Center: Navigation */}
-      <nav className="flex gap-10 max-md:gap-5 max-sm:hidden">
-        <button className="text-sm font-medium text-neutral-900 hover:cursor-pointer">
-          Home
-        </button>
-        <div className="flex items-center gap-1 text-sm font-medium text-neutral-900">
-          <button className="hover:cursor-pointer">Product</button>
-          <ArrowDownIcon />
+    <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+      <div className="px-40 flex h-16 items-center">
+        <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Image
+            src={CarImage}
+            alt="Logo"
+            width={30}
+            height={30}
+            className="rounded-md"
+          />
+          <span className="hidden font-bold sm:inline-block">FashionHub</span>
+        </Link>
+        <nav className="flex items-center space-x-4 lg:space-x-6 mr-4">
+          <Link
+            href="/"
+            className="text-sm font-medium transition-colors hover:text-gray-900"
+          >
+            Home
+          </Link>
+          <Link
+            href="/products"
+            className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
+          >
+            Shop
+          </Link>
+          <Link
+            href="/categories"
+            className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
+          >
+            Collections
+          </Link>
+        </nav>
+        <div className="flex-1 flex items-center justify-end space-x-4">
+          <div className="relative hidden md:flex w-full max-w-sm items-center">
+            <Search className="absolute left-2.5 h-4 w-4 text-gray-400" />
+            <input
+              type="search"
+              placeholder="Search for clothing..."
+              className="w-full rounded-md border border-gray-200 py-2 pl-8 pr-4 focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300 md:w-[300px] lg:w-[300px]"
+            />
+          </div>
+          <button className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <ShoppingCart className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-900 text-[10px] font-medium text-white flex items-center justify-center">
+              3
+            </span>
+          </button>
+          <button className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <User className="h-5 w-5" />
+          </button>
         </div>
-        {/* <p className="text-sm font-medium text-neutral-900">Contact Us</p> */}
-      </nav>
-
-      {/* Right: Search, Cart, Profile */}
-      <div className="flex items-center gap-4 max-sm:gap-2.5">
-        <button className="hover:cursor-pointer">
-          <SearchIcon />
-        </button>
-        <button className="hover:cursor-pointer">
-          <CartIcon />
-        </button>
-        <button className="hover:cursor-pointer">
-          <ProfileIcon />
-        </button>
       </div>
     </header>
   );

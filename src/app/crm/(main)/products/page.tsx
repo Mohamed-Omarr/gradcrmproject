@@ -37,7 +37,7 @@ export default function Products() {
   const [categoryData, setCategories] = useState<Category[] | []>([]);
   const [update, setUpdate] = useState<boolean>(false);
   const [updateFollowingId, setUpdateFollowingId] = useState<
-    string | undefined
+    number | undefined
   >(undefined);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentCategoryName, setCurrentCategoryName] = useState<string>("");
@@ -72,7 +72,7 @@ export default function Products() {
 
     const scanValue = categoryData.find((item) => item.name === value);
     if (scanValue) {
-      setSelectedCategoryId(Number(parseInt(scanValue.id)));
+      setSelectedCategoryId(scanValue.id);
     } else {
       throw new Error("Failed to find the id of selected category");
     }
@@ -112,7 +112,7 @@ export default function Products() {
     }
   };
 
-  const onDelete = async (itemId: string) => {
+  const onDelete = async (itemId: number) => {
     try {
       const res = await axiosAdmin.delete("crm/product/productMethods", {
         data: {

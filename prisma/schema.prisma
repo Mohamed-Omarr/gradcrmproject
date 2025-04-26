@@ -58,32 +58,61 @@ model Admin {
   products     Product[]
   categories   Category[]
   stocks       Stock[]
+  Colors       Colors[]
+  Sizes        Sizes[]
 }
 
 // Customer
 model Customer {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  role      String
-  refreshToken String?    @db.Text
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  createdAt    DateTime @default(now())
+  role         String
+  refreshToken String?  @db.Text
 }
 
 // Product
 model Product {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
-  price       String
+  price       Int
   description String?
   qty         Int
+
+  colors      Colors[] @relation("ProductColors")
+  
+  sizes       Sizes[] @relation("ProductSizes")
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
 
   owner   Admin  @relation(fields: [ownerId], references: [id])
   ownerId String
+}
+
+// Colors
+model Colors {
+  id   Int    @id @default(autoincrement())
+  name String
+  Code String
+
+  products Product[] @relation("ProductColors")
+
+  owner   Admin  @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
+
+// Sizes
+model Sizes {
+  id   Int    @id @default(autoincrement())
+  Code String
+
+  products Product[] @relation("ProductSizes")
+
+  owner    Admin     @relation(fields: [ownerId], references: [id])
+  ownerId  String
 }
 
 // Category

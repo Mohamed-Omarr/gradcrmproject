@@ -29,9 +29,9 @@ export const generateToken = async (user:userData,res:NextApiResponse) => {
             email:user.email,
         };
 
-        const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "1s" });
+        const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "15m" });
 
-        const refreshToken = jwt.sign(payload, refresh_token_key, { expiresIn: "5m" });
+        const refreshToken = jwt.sign(payload, refresh_token_key, { expiresIn: "7d" });
         
         if (user.role === "ADMIN"){
             // save token in cookies - in future must change  secure to  secure:true

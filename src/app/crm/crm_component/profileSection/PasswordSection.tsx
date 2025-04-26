@@ -153,6 +153,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
           onCancel={() => setShowPopup(false)}
           title={"Please confirm the following process"}
           message={"please click on yes or cancel"}
+          isLoading
         />
       )}
     </>
