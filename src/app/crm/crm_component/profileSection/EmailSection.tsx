@@ -66,7 +66,7 @@ function EmailSection(AdminInfo: { email: string; id: string }) {
     } catch (err) {
       return toastingError(err);
     } finally {
-      // setShowPopup(false);
+      setShowPopup(false);
       setIsLoading(false);
       reset();
     }

@@ -4,19 +4,19 @@ import { createProduct, deleteProduct, getProduct, updateProduct } from "../../.
 
 export default async function  productHandler (req:NextApiRequest , res:NextApiResponse) {
     if (req.method === "POST") {
-        await createProduct(req,res)  
+        return await createProduct(req,res)  
     }
 
     if (req.method === "DELETE") {
-        await deleteProduct(req,res)  
+        return await deleteProduct(req,res)  
     }
 
     if (req.method === "PATCH") {
-        await updateProduct(req,res)  
+        return await updateProduct(req,res)  
     }
 
 
     if (req.method === "GET") {
-        await getProduct(req,res)  
+        return await getProduct(req,res)  
     }
 }

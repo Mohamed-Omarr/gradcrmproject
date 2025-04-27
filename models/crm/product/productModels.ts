@@ -7,11 +7,12 @@ export const addProducts = async (data:Product) => {
             
             data:{
                 name:data.name,
-                price: data.price,
+                price: Number.parseInt(data.price),
                 description: data.description,
-                qty:Number(parseInt(data.qty)),
+                qty:Number.parseInt(data.qty),
                 ownerId:data.ownerId,
-                categoryId:Number(parseInt(data.categoryId))
+                categoryId:Number.parseInt(data.categoryId),
+                
             },
             include:{
                 category:{
@@ -20,6 +21,7 @@ export const addProducts = async (data:Product) => {
                     }
                 }
             }
+            
         })
         return {success:true,createdNewProduct:addedProduct}
     }catch(error){
@@ -31,7 +33,7 @@ export const deleteProducts = async (data:removeProduct) => {
     try{
         await prisma.product.delete({
             where:{
-                id: Number(parseInt(data.id)),
+                id: Number.parseInt(data.id),
                 ownerId: data.ownerId
             }
         })
@@ -45,15 +47,15 @@ export const updateProducts = async (data:Product) => {
     try{
         const updatedProduct = await prisma.product.update({
             where:{
-                id: Number(parseInt(data.id)),
+                id: Number.parseInt(data.id),
                 ownerId: data.ownerId
             },
             data:{
                 name:data.name,
-                price: data.price,
+                price: Number.parseInt(data.price),
                 description: data.description,
-                qty:Number(parseInt(data.qty)),
-                categoryId:Number(parseInt(data.categoryId))
+                qty:Number.parseInt(data.qty),
+                categoryId:Number.parseInt(data.categoryId)
             },
             include:{
                 category:{

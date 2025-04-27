@@ -4,19 +4,19 @@ import { createStock, deleteStock, getStock, updateStock } from "../../../../con
 
 export default async function  stockHandler (req:NextApiRequest , res:NextApiResponse) {
     if (req.method === "POST") {
-        await createStock(req,res)  
+        return await createStock(req,res)  
     }
 
     if (req.method === "DELETE") {
-        await deleteStock(req,res)  
+        return await deleteStock(req,res)  
     }
 
     if (req.method === "PATCH") {
-        await updateStock(req,res)  
+        return await updateStock(req,res)  
     }
 
 
     if (req.method === "GET") {
-        await getStock(req,res)  
+        return await getStock(req,res)  
     }
 }

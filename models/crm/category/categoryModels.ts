@@ -28,13 +28,13 @@ export const deleteCategories = async (data:removeCategory) => {
         // check if the category has foreign key with any other tables
         const countStock = await prisma.stock.count({
             where:{
-                categoryId:Number(parseInt(data.id)),
+                categoryId:Number.parseInt(data.id),
             }
         });
 
         const countProduct = await prisma.product.count({
             where:{
-                categoryId:Number(parseInt(data.id)),
+                categoryId:Number.parseInt(data.id),
             }
         });
 
@@ -43,7 +43,7 @@ export const deleteCategories = async (data:removeCategory) => {
             await prisma.product.deleteMany({
                 where:{
                     ownerId: data.ownerId,
-                    categoryId:Number(parseInt(data.id)),
+                    categoryId:Number.parseInt(data.id),
                 }
             })
         }
@@ -52,14 +52,14 @@ export const deleteCategories = async (data:removeCategory) => {
             await prisma.stock.deleteMany({
                 where:{
                     ownerId: data.ownerId,
-                    categoryId:Number(parseInt(data.id)),
+                    categoryId:Number.parseInt(data.id),
                 }
             })
         }
 
         await prisma.category.delete({
             where:{
-                id: Number(parseInt(data.id)),
+                id: Number.parseInt(data.id),
                 ownerId: data.ownerId
             }
         })
@@ -74,7 +74,7 @@ export const deleteCategories = async (data:removeCategory) => {
 export async function updateCategories(data:Category) {
     try {
         const updatedCategory = await prisma.category.update({
-            where: { id: Number(data.id) },
+            where: { id: Number.parseInt(data.id)},
             data: { description: data.description }
         });
         return { success: true, category: updatedCategory }; // Return an object instead of just calling await

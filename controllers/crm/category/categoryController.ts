@@ -59,7 +59,7 @@ export const deleteCategory = async (req:NextApiRequest, res:NextApiResponse) =>
             if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
 
 
-            if(itemOwner.categories.length > 0 && !itemOwner.categories.some((categoryId)=>categoryId.id === Number(parseInt(data.id)))){
+            if(itemOwner.categories.length > 0 && !itemOwner.categories.some((categoryId)=>categoryId.id === Number.parseInt(data.id))){
                 {return res.status(400).json({error:"Process of delete can not be complete because the category not exits "})}
             }
 
@@ -100,13 +100,13 @@ export const updateCategory= async (req:NextApiRequest, res:NextApiResponse) => 
             
             if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
 
-            const existingCategory = itemOwner.categories.find(category =>category.id === Number(parseInt(data.id)));
+            const existingCategory = itemOwner.categories.find(category =>category.id === Number.parseInt(data.id));
 
             if (!existingCategory) {
                 return res.status(400).json({error:"Category Id Not Found"})
             }
 
-            if (itemOwner.categories.some(category =>category.name === data.name && category.id !== Number(parseInt(data.id))))
+            if (itemOwner.categories.some(category =>category.name === data.name && category.id !== Number.parseInt(data.id)))
             {
                 return res.status(400).json({error:"Category name must be unique"})
             }

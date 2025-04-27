@@ -1,23 +1,23 @@
 type Product = {
-    id:string
+    id:number
     name:string
     price: number
     description: string | null
     ownerId: string
     qty: number
+    rate:   number
     category:   Category,
-    categoryId:  number | null
+    categoryId:  number
 }
 
 type removeProduct = {
-    id:string,
+    id:number,
     ownerId: string,
 }
 
 
 type Category = {
-    // id will become number
-    id:string,
+    id:number,
     name:string
     description: string | null
     products?:   Product[],
@@ -27,24 +27,22 @@ type Category = {
 
 type removeCategory = {
     // id will become number
-    id:string,
+    id:number,
     ownerId: string,
 }
 
 
 type Stock = {
-    // id will become number
-    id:string,
+    id:number,
     name:string,
     description: string | null,
     category:   Category,
-    categoryId: string
+    categoryId: number
     ownerId: string
 }
 
 type removeStock = {
-     // id will become number
-    id:string,
+    id:number,
     ownerId: string
 }
 
@@ -100,4 +98,9 @@ type ShopCategory = {
     id: number;
     name: string;
     products:ShopProduct[] ;
+}
+
+type Rate = {
+    productId: number;
+    rating:float;
 }

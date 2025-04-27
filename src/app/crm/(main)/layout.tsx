@@ -8,6 +8,8 @@ import { ToastContainer } from "react-toastify";
 import { AdminInfoProvider } from "@/hooks/share-admin-context";
 import { limitedAdminInfo } from "@/CrmGlobalData/shartLimitedAdminInfo";
 import "../../globals.css";
+import { Suspense } from "react";
+import Loader from "@/app/Loader";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,13 +37,15 @@ export default async function CrmLayout({
       >
         <AdminInfoProvider initialAdminInfo={adminInfo}>
           <SidebarProvider defaultOpen={true}>
-            <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr]">
-              <AppSidebar />
-              <div className="flex flex-col">
-                <Header />
-                <main className="flex-1 p-4 md:p-6">{children}</main>
+            <Suspense fallback={<Loader />}>
+              <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr]">
+                <AppSidebar />
+                <div className="flex flex-col">
+                  <Header />
+                  <main className="flex-1 p-4 md:p-6">{children}</main>
+                </div>
               </div>
-            </div>
+            </Suspense>
           </SidebarProvider>
           <ToastContainer />
         </AdminInfoProvider>

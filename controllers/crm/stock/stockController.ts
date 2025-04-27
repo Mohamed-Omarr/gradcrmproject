@@ -60,7 +60,7 @@ export const deleteStock = async (req:NextApiRequest, res:NextApiResponse) => {
             if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
 
 
-            if(itemOwner.stocks.length > 0 && !itemOwner.stocks.some((stockId)=>stockId.id === Number(parseInt(data.id)))){
+            if(itemOwner.stocks.length > 0 && !itemOwner.stocks.some((stockId)=>stockId.id === Number.parseInt(data.id))){
                 {return res.status(400).json({error:"Process of delete can not be complete because the stock not exits "})}
             }
 
@@ -101,26 +101,26 @@ export const updateStock= async (req:NextApiRequest, res:NextApiResponse) => {
             
             if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
 
-            const existingCategory = itemOwner.stocks.find(stock =>stock.id === Number(parseInt(data.id)));
+            const existingCategory = itemOwner.stocks.find(stock =>stock.id === Number.parseInt(data.id));
 
             if (!existingCategory) {
                 return res.status(400).json({error:"Stock Id Not Found"})
             }
 
-            if (itemOwner.stocks.some(stock =>stock.name === data.name && stock.id !== Number(parseInt(data.id))))
+            if (itemOwner.stocks.some(stock =>stock.name === data.name && stock.id !== Number.parseInt(data.id)))
             {
                 return res.status(400).json({error:"Stock name must be unique"})
             }
 
-            if (itemOwner.stocks.some(stock =>stock.categoryId ===  Number(parseInt(data.categoryId)) && stock.id !== Number(parseInt(data.id)))){
+            if (itemOwner.stocks.some(stock =>stock.categoryId ===  Number.parseInt(data.categoryId) && stock.id !== Number.parseInt(data.id))){
                 return res.status(400).json({error:"Category of each stock must be unique "})
             } 
 
-            if (existingCategory.name === data.name && existingCategory.description === data.description && existingCategory.categoryId === Number(parseInt(data.categoryId))){
+            if (existingCategory.name === data.name && existingCategory.description === data.description && existingCategory.categoryId === Number.parseInt(data.categoryId)){
                 return res.status(400).json({error:"Please change either the name or description or category"})
             } 
 
-            if (existingCategory.name === data.name  && existingCategory.categoryId === Number(parseInt(data.categoryId)) ){
+            if (existingCategory.name === data.name  && existingCategory.categoryId === Number.parseInt(data.categoryId) ){
                 const updateResult = await  updateStocks(data);;
                 
                 if(updateResult.success){

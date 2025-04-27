@@ -59,7 +59,6 @@ model Admin {
   categories   Category[]
   stocks       Stock[]
   Colors       Colors[]
-  Sizes        Sizes[]
 }
 
 // Customer
@@ -71,19 +70,22 @@ model Customer {
   createdAt    DateTime @default(now())
   role         String
   refreshToken String?  @db.Text
+  ratings Rating[]
 }
 
 // Product
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
   price       Int
   description String?
   qty         Int
 
-  colors      Colors[] @relation("ProductColors")
-  
-  sizes       Sizes[] @relation("ProductSizes")
+  colors Colors[] @relation("ProductColors")
+
+  sizes Sizes[] @relation("ProductSizes")
+
+  ratings         Rating[]
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
@@ -110,9 +112,21 @@ model Sizes {
   Code String
 
   products Product[] @relation("ProductSizes")
+}
 
-  owner    Admin     @relation(fields: [ownerId], references: [id])
-  ownerId  String
+// Rates
+model Rating {
+  id   Int    @id @default(autoincrement())
+  score Float
+  review  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  customerId String
 }
 
 // Category

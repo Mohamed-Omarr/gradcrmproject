@@ -22,6 +22,7 @@ import ConfirmationPopup from "../confirmation_popup/ConfirmationPopup";
 
 function PasswordSection(AdminInfo: { email: string; id: string }) {
   const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -55,6 +56,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
   };
 
   const onSubmit = async () => {
+    setIsLoading(true);
     try {
       const newData = {
         ...getValues(),
@@ -76,6 +78,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
     } finally {
       reset();
       setShowPopup(false);
+      setIsLoading(false);
     }
   };
 
@@ -153,7 +156,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
           onCancel={() => setShowPopup(false)}
           title={"Please confirm the following process"}
           message={"please click on yes or cancel"}
-          isLoading
+          isLoading={isLoading}
         />
       )}
     </>

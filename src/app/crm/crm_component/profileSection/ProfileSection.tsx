@@ -28,6 +28,7 @@ function ProfileSection(AdminInfo: {
 }) {
   const [new_Name, setNew_Name] = useState<string>("");
   const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const newData = {
     previousName: AdminInfo.name,
@@ -45,6 +46,7 @@ function ProfileSection(AdminInfo: {
   };
 
   const onSubmit = async () => {
+    setIsLoading(true);
     try {
       const res = await axiosAdmin.post("crm/profile/updateAdminName", {
         id: AdminInfo.id,
@@ -57,6 +59,7 @@ function ProfileSection(AdminInfo: {
     } catch (err) {
       return toastingError(err);
     } finally {
+      setIsLoading(false);
       setShowPopup(false);
     }
   };
@@ -117,6 +120,7 @@ function ProfileSection(AdminInfo: {
           onCancel={() => setShowPopup(false)}
           title={"Please confirm the following process"}
           message={"please click on yes or cancel"}
+          isLoading={isLoading}
         />
       )}
     </>

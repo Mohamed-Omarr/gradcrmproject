@@ -4,19 +4,19 @@ import { createCategory, deleteCategory, getCategory, updateCategory } from "../
 
 export default async function  categoryHandler (req:NextApiRequest , res:NextApiResponse) {
     if (req.method === "POST") {
-        await createCategory(req,res)  
+        return await createCategory(req,res)  
     }
 
     if (req.method === "DELETE") {
-        await deleteCategory(req,res)  
+        return await deleteCategory(req,res)  
     }
 
     if (req.method === "PATCH") {
-        await updateCategory(req,res)  
+        return await updateCategory(req,res)  
     }
 
 
     if (req.method === "GET") {
-        await getCategory(req,res)  
+        return await getCategory(req,res)  
     }
 }

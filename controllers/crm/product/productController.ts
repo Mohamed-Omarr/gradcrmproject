@@ -64,7 +64,7 @@ export const deleteProduct = async (req:NextApiRequest, res:NextApiResponse) => 
 
             const scanToCompare = itemOwner.products.map((info)=>info);
 
-            if(!scanToCompare.some((product)=>product.id === Number(parseInt(data.id)))){
+            if(!scanToCompare.some((product)=>product.id === Number.parseInt(data.id))){
                 return res.status(400).json({error:"Product Id Not Found"})
             }
 
@@ -105,22 +105,22 @@ export const updateProduct = async (req:NextApiRequest, res:NextApiResponse) => 
                
                if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
    
-               const existingCategory = itemOwner.products.find(product =>product.id === Number(parseInt(data.id)));
+               const existingCategory = itemOwner.products.find(product =>product.id === Number.parseInt(data.id));
    
                if (!existingCategory) {
                    return res.status(400).json({error:"Product Id Not Found"})
                }
    
-               if (itemOwner.products.some(product =>product.name === data.name && product.id !== Number(parseInt(data.id))))
+               if (itemOwner.products.some(product =>product.name === data.name && product.id !== Number.parseInt(data.id)))
                {
                    return res.status(400).json({error:"Product name must be unique"})
                }
    
-               if (existingCategory.name === data.name && existingCategory.description === data.description && existingCategory.categoryId === Number(parseInt(data.categoryId)) && Number(parseInt(existingCategory.price)) === data.price && existingCategory.qty === data.qty   ){
+               if (existingCategory.name === data.name && existingCategory.description === data.description && existingCategory.categoryId === Number.parseInt(data.categoryId) && existingCategory.price === Number.parseInt(data.price) && existingCategory.qty === Number.parseInt(data.qty)  ){
                    return res.status(400).json({error:"Please change either the name or description or price or quantity or category"})
                } 
    
-               if (existingCategory.name === data.name && Number(parseInt(existingCategory.price))){
+               if (existingCategory.name === data.name && existingCategory.price){
                    const updateResult = await  updateProducts(data);;
                    
                    if(updateResult.success){
