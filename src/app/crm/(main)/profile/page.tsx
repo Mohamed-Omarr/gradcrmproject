@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Mail, UserCircle, KeyRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useAdminInfo } from "@/hooks/share-admin-context";
+import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import EmailSection from "@/app/crm/crm_component/profileSection/EmailSection";
 import PasswordSection from "@/app/crm/crm_component/profileSection/PasswordSection";
 import ProfileSection from "@/app/crm/crm_component/profileSection/ProfileSection";

@@ -1,19 +1,14 @@
 import { NextApiRequest , NextApiResponse } from "next";
-import { ZodError } from "zod";
-
-import { formatZodError } from "../../../_lib_backend/validation/zodError";
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient";
 import { decodeToken } from "../../../_lib_backend/token/decodeToken";
 import { validationCreateStock, validationRemoveStock, validationUpdateStock } from "../../../_lib_backend/validation/stockValidation";
 import { addStocks, deleteStocks, getStocks, updateStocks } from "../../../models/crm/stock/stockModels";
+import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/zodValidatorHelper";
 
 export const createStock = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
-        const data:Stock =  req.body;
-        
-        try {
             // parse the incoming data
-            validationCreateStock.parse( data);
+            const data = zodValidatorHelper(validationCreateStock,req.body,res)
 
             const itemOwner = await prisma.admin.findUnique({where:{id:data.ownerId},select:{stocks:true}})
             
@@ -33,14 +28,6 @@ export const createStock = async (req:NextApiRequest , res:NextApiResponse) => {
             }
 
 
-        } catch (error) {
-            
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
-            }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
-
     } catch (error) {
         return res.status(500).json({error:`Internal Server Error:${error}`})
     }
@@ -50,34 +37,25 @@ export const createStock = async (req:NextApiRequest , res:NextApiResponse) => {
 
 export const deleteStock = async (req:NextApiRequest, res:NextApiResponse) => {
     try {
-        const data:removeStock = req.body;
-        try {
 
-            validationRemoveStock.parse(data)
-            
+            const data = zodValidatorHelper(validationRemoveStock,req.body,res)
+
             const itemOwner = await prisma.admin.findUnique({where:{id:data.ownerId},select:{stocks:true}})
             
             if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
 
 
-            if(itemOwner.stocks.length > 0 && !itemOwner.stocks.some((stockId)=>stockId.id === Number.parseInt(data.id))){
+            if(itemOwner.stocks.length > 0 && !itemOwner.stocks.some((stockId)=>stockId.id === data.id)){
                 {return res.status(400).json({error:"Process of delete can not be complete because the stock not exits "})}
             }
 
             const deleting = await deleteStocks(data)
 
             if (deleting.success) {
-                return res.status(200).json({message:"Deleted a stock successfully ",unselectedCategory:deleting.unselectedCategory})
+                return res.status(204).json({message:"Deleted a stock successfully ",unselectedCategory:deleting.unselectedCategory})
             }else {
                 return res.status(500).json({error:`${deleting.error}`})
             }
-
-        }catch(error){
-            if(error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
-            }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
 
 
     } catch (error){
@@ -91,37 +69,34 @@ export const deleteStock = async (req:NextApiRequest, res:NextApiResponse) => {
 
 export const updateStock= async (req:NextApiRequest, res:NextApiResponse) => {
     try {
-        const data:Stock = req.body;
 
-        try {
-
-            validationUpdateStock.parse(data)
+            const data = zodValidatorHelper(validationUpdateStock,req.body,res)
 
             const itemOwner = await prisma.admin.findUnique({where:{id:data.ownerId},select:{stocks:true}})
             
             if(!itemOwner) {return res.status(400).json({error:"Owner Id Not Found"})}
 
-            const existingCategory = itemOwner.stocks.find(stock =>stock.id === Number.parseInt(data.id));
+            const existingCategory = itemOwner.stocks.find(stock =>stock.id === data.id);
 
             if (!existingCategory) {
                 return res.status(400).json({error:"Stock Id Not Found"})
             }
 
-            if (itemOwner.stocks.some(stock =>stock.name === data.name && stock.id !== Number.parseInt(data.id)))
+            if (itemOwner.stocks.some(stock =>stock.name === data.name && stock.id !== data.id))
             {
                 return res.status(400).json({error:"Stock name must be unique"})
             }
 
-            if (itemOwner.stocks.some(stock =>stock.categoryId ===  Number.parseInt(data.categoryId) && stock.id !== Number.parseInt(data.id))){
+            if (itemOwner.stocks.some(stock =>stock.categoryId ===  (data.categoryId) && stock.id !== (data.id))){
                 return res.status(400).json({error:"Category of each stock must be unique "})
             } 
 
-            if (existingCategory.name === data.name && existingCategory.description === data.description && existingCategory.categoryId === Number.parseInt(data.categoryId)){
+            if (existingCategory.name === data.name && existingCategory.description === data.description && existingCategory.categoryId === data.categoryId){
                 return res.status(400).json({error:"Please change either the name or description or category"})
             } 
 
-            if (existingCategory.name === data.name  && existingCategory.categoryId === Number.parseInt(data.categoryId) ){
-                const updateResult = await  updateStocks(data);;
+            if (existingCategory.name === data.name  && existingCategory.categoryId === data.categoryId) {
+                const updateResult = await  updateStocks(data);
                 
                 if(updateResult.success){
                     return res.status(200).json({message:" Updated stock successfully ",updatedStock:updateResult.stock})
@@ -138,15 +113,6 @@ export const updateStock= async (req:NextApiRequest, res:NextApiResponse) => {
                     return res.status(500).json({error:updateResultOtherCases.error})
                 }
             }
-            
-
-        }catch(error){
-            if(error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
-            }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
-
 
     } catch (error){
         return res.status(500).json({error:`Internal Server Error:${error}`})
@@ -163,7 +129,7 @@ export const getStock = async (req:NextApiRequest, res:NextApiResponse) => {
             const tokenData = await decodeToken(req.headers.authorization);
 
             if(typeof tokenData !== "string"){
-                return res.status(201).json({message:" Invalid token ",error:tokenData.error})
+                return res.status(401).json({message:" Invalid token ",error:tokenData.error})
             }
             // tokenData all include the ownerId and it being passed to function.
             const get_stocks = await getStocks(tokenData);

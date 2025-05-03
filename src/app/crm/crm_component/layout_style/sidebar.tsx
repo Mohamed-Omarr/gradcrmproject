@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Home, Package } from "lucide-react"
-import Link from "next/link"
+import { ChevronDown, Home, Package } from "lucide-react";
+import Link from "next/link";
 
 import {
   Sidebar as ShadcnSidebar,
@@ -10,10 +10,28 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export function AppSidebar() {
+  const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState({
+    products: true, // Set to true to have it open by default
+  });
+
+  const toggleMenu = (menu) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [menu]: !prev[menu],
+    }))
+  }
+  
   return (
     <ShadcnSidebar>
       <SidebarHeader className="border-b p-4">
@@ -37,14 +55,50 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/crm/products">
+            <SidebarMenuButton
+              onClick={() => toggleMenu("products")}
+              className={cn(
+                "justify-between",
+                (pathname === "/crm/products" || pathname === "/crm/products/attributes") &&
+                  "bg-sidebar-accent text-sidebar-accent-foreground"
+              )}
+            >
+              <div className="flex items-center">
                 <Package className="mr-2 h-4 w-4" />
                 Products
-              </Link>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  openMenus.products ? "rotate-180" : ""
+                )}
+              />
             </SidebarMenuButton>
+
+            {openMenus.products && (
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={pathname === "/crm/products"}
+                  >
+                    <Link href="/crm/products">Products List</Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={pathname === "/crm/products/attributes"}
+                  >
+                    <Link href="/crm/products/attributes">Attributes</Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            )}
           </SidebarMenuItem>
+
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/crm/categories">
@@ -64,6 +118,5 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
     </ShadcnSidebar>
-  )
+  );
 }
-

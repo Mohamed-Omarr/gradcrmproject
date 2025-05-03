@@ -1,5 +1,8 @@
 "use client";
-import { Filter, Plus, Search } from "lucide-react";
+import { useState } from "react";
+import { Filter, Plus, Search, Pencil, Trash2 } from "lucide-react";
+import Image from "next/image";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,245 +23,73 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useMemo, useState } from "react";
-import axiosAdmin from "@/lib/axios/axiosAdmin";
-import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
-import { toastingError } from "@/lib/toast_message/toastingErrors";
-import { useAdminInfo } from "@/hooks/share-admin-context";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { useSizes } from "@/hooks/crm/share-sizes-context";
+import { useColors } from "@/hooks/crm/share-colors-context";
 
-export default function Products() {
-  const [getName, setGetName] = useState<string>("");
-  const [getDesc, setGetDesc] = useState<string>("");
-  const [getPrice, setGetPrice] = useState<number>(0);
-  const [getQty, setGetQty] = useState<number>(1);
-  const [openPopUp, setOpenPopUp] = useState<boolean>(false);
-  const [productData, setProduct] = useState<Product[] | []>([]);
-  const [categoryData, setCategories] = useState<Category[] | []>([]);
-  const [update, setUpdate] = useState<boolean>(false);
-  const [updateFollowingId, setUpdateFollowingId] = useState<
-    number | undefined
-  >(undefined);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [currentCategoryName, setCurrentCategoryName] = useState<string>("");
-  const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
-  useState<string>("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
-    null
-  );
-  const [stockStatus, setStockStatus] = useState<string>("All");
-  const admin_info = useAdminInfo();
+export default function ProductsPage() {
+  // data
+  const [products, setProduct] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const allSizes = useSizes();
+  const allColors = useColors();
 
-  const get_category_data = async () => {
-    try {
-      const res = await axiosAdmin.get("crm/category/categoryMethods");
-      setCategories(res.data.categories);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
-
-  const get_product_data = async () => {
-    try {
-      const res = await axiosAdmin.get("crm/product/productMethods");
-      setProduct(res.data.products);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
-
-  const handleSelectCategory = (value: string) => {
-    setSelectedCategoryName(value);
-
-    const scanValue = categoryData.find((item) => item.name === value);
-    if (scanValue) {
-      setSelectedCategoryId(scanValue.id);
-    } else {
-      throw new Error("Failed to find the id of selected category");
-    }
-  };
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission
-    try {
-      const res = await axiosAdmin.post("crm/product/productMethods", {
-        name: getName,
-        description: getDesc,
-        price: getPrice,
-        qty: getQty,
-        ownerId: admin_info?.id,
-        categoryId: selectedCategoryId,
-      });
-      if (productData && productData.length === 0) {
-        setProduct((prev) => [...prev, res.data.createdProduct]);
-      } else if (productData) {
-        setProduct((prev) => [...prev, res.data.createdProduct]);
-      } else {
-        setProduct(res.data.createdProduct); // Ensure it's an array
-      }
-
-      setOpenPopUp(false);
-      toastingSuccess(res);
-
-      // changing the state to default
-      setSelectedCategoryId(null);
-      setSelectedCategoryName("");
-      setGetName("");
-      setGetDesc("");
-      setGetPrice(0);
-      setGetQty(1);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
-
-  const onDelete = async (itemId: number) => {
-    try {
-      const res = await axiosAdmin.delete("crm/product/productMethods", {
-        data: {
-          id: itemId,
-          ownerId: admin_info?.id,
-        },
-      });
-      setProduct((prev) => prev.filter((product) => product.id !== itemId));
-      toastingSuccess(res);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
-
-  const onUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission
-
-    try {
-      const res = await axiosAdmin.patch("crm/product/productMethods", {
-        id: updateFollowingId,
-        ownerId: admin_info?.id,
-        name: getName,
-        description: getDesc,
-        price: getPrice,
-        qty: getQty,
-        categoryId: selectedCategoryId,
-      });
-
-      setProduct((prev) =>
-        prev.map((product) =>
-          product.id === updateFollowingId
-            ? { ...product, ...res.data.updatedProduct } // Correctly spread properties of updatedProduct
-            : product
-        )
-      );
-
-      setOpenPopUp(false);
-      toastingSuccess(res);
-
-      // changing the state to default
-      setUpdate(false);
-      setUpdateFollowingId(undefined);
-      setSelectedCategoryId(null);
-      setCurrentCategoryName("");
-      setSelectedCategoryName("");
-      setGetName("");
-      setGetDesc("");
-      setGetPrice(0);
-      setGetQty(1);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
-
-  useEffect(() => {
-    get_product_data();
-    get_category_data();
-  }, []);
-
-  // handling filter product
-  const filteredProducts = useMemo(() => {
-    if (!productData || productData.length === 0) return [];
-
-    // search filter
-    let result = productData.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.description?.toLowerCase().includes(searchTerm) ||
-        product.category.name?.toLowerCase().includes(searchTerm)
-    );
-
-    // stock status filter
-    switch (stockStatus) {
-      case "High In Stock":
-        result = result.filter((product) => product.qty > 50);
-        break;
-
-      case "Low In Stock":
-        result = result.filter(
-          (product) => product.qty <= 50 && product.qty > 0
-        );
-        break;
-
-      case "Null In Stock":
-        result = result.filter((product) => product.qty === 0);
-        break;
-
-      case "All":
-        break;
-      default:
-        setStockStatus("All");
-        break;
-    }
-
-    return result;
-  }, [productData, searchTerm, stockStatus]);
+  // other states
+  const [open, setOpen] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   return (
     <div className="h-full space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Products</h1>
 
-        <Dialog
-          open={openPopUp}
-          onOpenChange={(isOpen) => {
-            setOpenPopUp(isOpen);
-            if (!isOpen) {
-              setUpdate(false);
-              setUpdateFollowingId(undefined);
-              setSelectedCategoryId(null);
-              setCurrentCategoryName("");
-              setSelectedCategoryName("");
-              setGetName("");
-              setGetDesc("");
-              setGetPrice(0);
-              setGetQty(1);
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <form onSubmit={update ? onUpdate : onSubmit}>
-              <DialogHeader>
-                <DialogTitle>
-                  {update ? "Edit The Product " : "Add New Product"}
-                </DialogTitle>
-                <DialogDescription>
-                  {update
-                    ? "Edit the details of your exits Product. Click update when you are done. "
-                    : "Fill in the details for your new Product. Click save when you are done."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
+      </div>
+
+      <Dialog>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+            <DialogDescription>
+              Fill in the details for your new product. Click save when you're
+              done.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="colors">Colors</TabsTrigger>
+              <TabsTrigger value="sizes">Sizes</TabsTrigger>
+            </TabsList>
+
+            {/* Basic Info Tab */}
+            <TabsContent value="basic" className="space-y-4 py-4">
+              <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Product Name</Label>
                   <Input
                     id="name"
                     name="name"
+                    placeholder="Enter product name"
                     required
-                    placeholder="Enter Product name"
-                    value={getName}
-                    onChange={(e) => setGetName(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="price">Price ($)</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    required
                   />
                 </div>
                 <div className="grid gap-2">
@@ -267,238 +97,202 @@ export default function Products() {
                   <Textarea
                     id="description"
                     name="description"
-                    placeholder="Enter Product description"
+                    placeholder="Enter product description"
                     required
-                    value={getDesc}
-                    onChange={(e) => setGetDesc(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="price"> Price</Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    required
-                    placeholder="Enter Product price"
-                    value={getPrice}
-                    onChange={(e) => setGetPrice(Number(e.target.value))}
-                  />
+                  <Label htmlFor="status">Status</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="In Stock">In Stock</SelectItem>
+                      <SelectItem value="Low Stock">Low Stock</SelectItem>
+                      <SelectItem value="Out of Stock">Out of Stock</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="quantity"> Quantity</Label>
-                  <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    required
-                    placeholder="Enter Product quantity"
-                    value={getQty}
-                    onChange={(e) => setGetQty(Number(e.target.value))}
-                  />
-                </div>
-                {categoryData && categoryData.length > 0 && !update ? (
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select
-                      required
-                      value={selectedCategoryName}
-                      onValueChange={handleSelectCategory}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categoryData
-                          .filter((x: Category) => x.name && x.id && x.stock)
-                          .map((item) => (
-                            <SelectItem key={item.id} value={item.name}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="grid gap-2">
-                    <Label htmlFor="status">Category</Label>
-                    <div className="flex items-center justify-between gap-2">
-                      <Select
-                        required
-                        value={selectedCategoryName}
-                        onValueChange={handleSelectCategory}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={currentCategoryName} />
-                        </SelectTrigger>
-                        {categoryData && categoryData.length > 0 && (
-                          <SelectContent>
-                            {categoryData
-                              .filter(
-                                (x: Category) =>
-                                  x.name !== currentCategoryName &&
-                                  x.id &&
-                                  x.stock?.name
-                              )
-                              .map((item) => (
-                                <SelectItem key={item.id} value={item.name}>
-                                  {item.name}
-                                </SelectItem>
-                              ))}
-                            {categoryData
-                              .filter(
-                                (x: Category) =>
-                                  x.id && x.name === currentCategoryName
-                              )
-                              .map((item) => (
-                                <SelectItem
-                                  key={item.id}
-                                  value={item.name}
-                                  className="bg-black text-white font-semibold"
-                                >
-                                  default: {item.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        )}
-                      </Select>
+                  <Label htmlFor="image">Product Image</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="border rounded-md p-2 w-24 h-24 flex items-center justify-center">
+                      <Image
+                        src={"/placeholder.svg"}
+                        alt="Product preview"
+                        width={80}
+                        height={80}
+                        className="object-contain"
+                      />
                     </div>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      className="flex-1"
+                    />
                   </div>
-                )}
+                </div>
               </div>
-              <DialogFooter className="!justify-center">
-                {update ? (
-                  <Button type="submit">Update Product</Button>
-                ) : (
-                  <Button type="submit">Add Product</Button>
-                )}
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </TabsContent>
+
+            {/* Colors Tab */}
+            <TabsContent value="colors" className="py-4">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Available Colors</h3>
+                  <span className="text-sm text-muted-foreground">
+                    withlngth selected
+                  </span>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id={`color-`} />
+                    <div className="w-6 h-6 rounded border"></div>
+                    <Label htmlFor={`color-`} className="flex-1">
+                      color name
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      color code
+                    </span>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground italic">
+                  No colors selected. This product will not have color options.
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Sizes Tab */}
+            <TabsContent value="sizes" className="py-4">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Available Sizes</h3>
+                  <span className="text-sm text-muted-foreground">
+                    withlength selected
+                  </span>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id={`size-`} />
+                    <div className="w-8 h-8 rounded border flex items-center justify-center font-medium">
+                      size code
+                    </div>
+                    <Label htmlFor={`size-`} className="flex-1">
+                      size name
+                    </Label>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground italic">
+                  No sizes selected. This product will not have size options.
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter>
+            <Button type="button">Save Product</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search Product..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
-              />
+              <Input placeholder="Search products..." className="pl-8" />
             </div>
             <div className="flex gap-2">
-              <Select
-                defaultValue="All"
-                onValueChange={setStockStatus}
-                value={stockStatus}
-              >
+              <Select defaultValue="all">
                 <SelectTrigger className="w-[180px]">
                   <div className="flex items-center">
                     <Filter className="mr-2 h-4 w-4" />
-                    <span>{stockStatus}</span>
+                    <span>Status</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">All Statuses</SelectItem>
-                  <SelectItem value="High In Stock">High In Stock</SelectItem>
-                  <SelectItem value="Low In Stock">Low In Stock</SelectItem>
-                  <SelectItem value="Null In Stock">Out of Stock</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="In Stock">In Stock</SelectItem>
+                  <SelectItem value="Low Stock">Low Stock</SelectItem>
+                  <SelectItem value="Out of Stock">Out of Stock</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
+          {/* product list */}
           <div className="rounded-md border">
-            <div className="bg-muted p-3 grid grid-cols-12 font-medium justify-items-center">
-              <div className="col-span-1">Name</div>
-              <div className="col-span-5">Description</div>
+            <div className="bg-muted p-3 grid grid-cols-12 font-medium">
+              <div className="col-span-1">Image</div>
+              <div className="col-span-2">Name</div>
+              <div className="col-span-3">Description</div>
               <div className="col-span-1">Price</div>
-              <div className="col-span-1">Quantity</div>
-              <div className="col-span-1">Category</div>
-              <div className="col-span-1">Status</div>
-              <div className="col-span-2">Action</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-2">Options</div>
+              <div className="col-span-1 text-right">Actions</div>
             </div>
-
-            <div className="divide-y max-h-[400px] overflow-y-scroll">
-              {filteredProducts &&
-                filteredProducts.length > 0 &&
-                filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-3 grid grid-cols-12 items-center justify-items-center"
-                  >
-                    <div className="col-span-1 font-medium">{product.name}</div>
-                    <div className="col-span-5 truncate">
-                      {product.description}
-                    </div>
-                    <div className="col-span-1 font-medium">
-                      {product.price}
-                    </div>
-                    <div className="col-span-1 font-medium">{product.qty}</div>
-                    <div className="col-span-1">{product.category.name}</div>
+            {products && products.length > 0 ? (
+              products.map((item,index) => (
+                <div key={index} className="divide-y">
+                  <div className="p-3 grid grid-cols-12 items-center">
                     <div className="col-span-1">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          product.qty === 0
-                            ? "bg-red-100 text-red-800" // Empty in stock (Red)
-                            : product.qty > 50
-                            ? "bg-green-100 text-green-800" // High in stock (Green)
-                            : "bg-yellow-100 text-yellow-800" // Low in stock (Yellow)
-                        }`}
-                      >
-                        {product.qty === 0
-                          ? "Null in Stock"
-                          : product.qty > 50
-                          ? "High in Stock"
-                          : "Low in Stock"}
-                      </span>
+                      <Image
+                        src={"/placeholder.svg"}
+                        alt="img"
+                        width={50}
+                        height={50}
+                        className="rounded-md object-cover"
+                      />
                     </div>
-                    <div className="col-span-2 gap-2">
-                      <button
-                        onClick={() => {
-                          setUpdate(true);
-                          setOpenPopUp(true);
-                          setUpdateFollowingId(product.id);
-                          setCurrentCategoryName(product.category.name);
-                          setGetName(product.name);
-                          setGetPrice(product.price);
-                          setGetQty(product.qty);
-                          setSelectedCategoryId(product.categoryId);
-                          if (typeof product.description === "string")
-                            return setGetDesc(product.description);
-                        }}
-                      >
-                        Edit
-                      </button>
-
-                      <button onClick={() => onDelete(product.id)}>
-                        Delete
-                      </button>
+                    <div className="col-span-2 font-medium">{item.name}</div>
+                    <div className="col-span-3 truncate">{item.description}</div>
+                    <div className="col-span-1">${item.price}</div>
+                    <div className="col-span-2">
+                      <span>status</span>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                        {item.colors.length}
+                        </span>
+                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 rounded text-xs">
+                        {item.sizes.length}
+                        </span>
+                        <div className="flex gap-1 mt-1">
+                          <div className="w-4 h-4 rounded-full border">
+                            color cirucle
+                          </div>
+                          <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px]">
+                            +color of productlength
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon">
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                ))}
-            </div>
+                </div>
+              ))
+            ) : (
+              <p>Currently No Products Avalibles</p>
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
   );
-}
-
-{
-  /* <span
-className={`px-2 py-1 rounded-full text-xs font-medium ${
-  product.status === "In Stock"
-    ? "bg-green-100 text-green-800"
-    : product.status === "Low Stock"
-      ? "bg-yellow-100 text-yellow-800"
-      : "bg-red-100 text-red-800"
-}`}
->
-{product.status}
-</span> */
 }

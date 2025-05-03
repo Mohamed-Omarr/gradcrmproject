@@ -1,13 +1,24 @@
 type Product = {
     id:number
     name:string
-    price: number
-    description: string | null
+    price: float
+    description: string | undefined
+    thumbnail: string
+    images: ProductImages[]
     ownerId: string
     qty: number
-    rate:   number
+    rate:   Rate
     category:   Category,
-    categoryId:  number
+    categoryId:  number,
+    colors: Colors[],
+    sizes: Sizes[],
+}
+
+type ProductImages = {
+    id:number,
+    url:      string,
+    product:   Product,
+    productId: number,
 }
 
 type removeProduct = {
@@ -19,7 +30,7 @@ type removeProduct = {
 type Category = {
     id:number,
     name:string
-    description: string | null
+    description: string | undefined
     products?:   Product[],
     stock?:       Stock
     ownerId: string
@@ -35,7 +46,7 @@ type removeCategory = {
 type Stock = {
     id:number,
     name:string,
-    description: string | null,
+    description: string | undefined,
     category:   Category,
     categoryId: number
     ownerId: string
@@ -88,10 +99,13 @@ type ShopProduct = {
     id: number;
     name: string;
     price: number;
-    description: string | null;
+    description: string | undefined;
     qty: number;
     ownerId: string;
     category: ShopCategory,
+    thumbnail: string
+    colors:Colors[],
+    sizes:Sizes[],
 }
 
 type ShopCategory = {
@@ -101,6 +115,52 @@ type ShopCategory = {
 }
 
 type Rate = {
+    id:number
     productId: number;
-    rating:float;
+    score:float;
+    review:  string | undefined
+    customerId:string
 }
+
+type removeRate = {
+    id:number
+    productId: number;
+    customerId:string
+}
+
+type Sizes = {
+    id:number
+    code:string
+    name:string
+    Products:   Product[],  
+}
+
+type removeSizes = {
+    id:number
+    ownerId: string
+}
+
+type Colors = {
+    id:number
+    code:string
+    name:string
+    ownerId:string,
+    Products:   Product[],  
+}
+
+type removeColors = {
+    id:number
+    ownerId:string
+}
+
+type SizeOfProduct = {
+    sizeIds:number[],
+    productId:number
+}
+
+type ColorOfProduct = {
+    colorIds:number[],
+    productId:number
+}
+
+

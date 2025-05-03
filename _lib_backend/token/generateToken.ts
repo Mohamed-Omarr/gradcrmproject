@@ -70,9 +70,8 @@ export const generateToken = async (user:userData,res:NextApiResponse) => {
                 }
             })
         }
-
-        return res.status(200).json({message: "login success",accessToken})
-    }catch(error) {
-        return res.status(400).json({error:`Failed to generate token:${error}`})
+        return {success:true,accessToken}        
+    }catch(err) {
+        return {success:false,error:err}
     }
 }

@@ -4,9 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Minus, Plus, Share2, ShoppingCart, Star } from "lucide-react";
-import CarImage from "../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg"
-export default function ProductPage({ product }:{ product:ShopProduct }) {
-  const [mainImage, setMainImage] = useState(CarImage);
+export default function ProductPage({ product }: { product: ShopProduct }) {
+  const [mainImage, setMainImage] = useState(product.thumbnail);
   // const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   // const [selectedSize, setSelectedSize] = useState(product.sizes[2]); // Default to M
   const [quantity, setQuantity] = useState(1);
@@ -33,7 +32,7 @@ export default function ProductPage({ product }:{ product:ShopProduct }) {
             <div className="space-y-4">
               <div className="aspect-square overflow-hidden rounded-lg border border-gray-200">
                 <Image
-                  src={CarImage}
+                  src={mainImage}
                   alt={"img"}
                   width={600}
                   height={600}

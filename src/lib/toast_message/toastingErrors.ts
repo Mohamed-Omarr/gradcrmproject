@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import {  toast } from 'react-toastify';
 import { ZodError } from 'zod';
-import { formatZodError } from '../../../_lib_backend/validation/zodError';
+import { formatZodError } from '../../../_lib_backend/validation/zodHelper/zodError';
 
 export const toastingError = (msgOfError:unknown) => {
 

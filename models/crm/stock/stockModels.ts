@@ -5,7 +5,7 @@ export const addStocks = async (data:Stock) => {
         const addedStock =  await prisma.stock.create({
             data:{
                 name:data.name,
-                categoryId: Number.parseInt(data.categoryId),
+                categoryId: data.categoryId,
                 ownerId:data.ownerId,
                 description:data.description
             },
@@ -28,7 +28,7 @@ export const deleteStocks = async (data:removeStock) => {
    try{
     await prisma.stock.delete({
         where:{
-            id: Number.parseInt(data.id),
+            id: data.id,
             ownerId: data.ownerId
         }
     })
@@ -53,13 +53,13 @@ export const updateStocks = async (data:Stock) => {
     try{
     const updatedStock = await prisma.stock.update({
         where:{
-            id: Number.parseInt(data.id),
+            id: data.id,
             ownerId: data.ownerId
         },
         data:{
             name:data.name,
             description: data.description,
-            categoryId: Number.parseInt(data.categoryId),
+            categoryId: data.categoryId,
         },
         include:{
             category:{
@@ -88,8 +88,6 @@ export const updateStocks = async (data:Stock) => {
 
     }
 }
-
-
 
 export const getStocks = async (ownerId:string) => {
     try {

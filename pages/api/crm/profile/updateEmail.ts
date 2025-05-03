@@ -1,5 +1,5 @@
 import { NextApiRequest , NextApiResponse } from "next";
-import { updatingEmail } from "../../../../controllers/crm/profile/mangeUserInfoController";
+import { updatingEmail } from "../../../../controllers/crm/profile/mangeAdminInfoController";
 
 export default async function updateEmail(req:NextApiRequest , res:NextApiResponse) {
     if (req.method === "POST") {

@@ -1,53 +1,55 @@
-// import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
+import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
-// export const get_all_product = async () => {
-//     try{
-//         const allProduct = await prisma.product.findMany({
-//                 select:{
-//                     id:true,
-//                     name:true,
-//                     description:true,
-//                     price:true,
-//                     ownerId:true,
-//                     qty:true,
-//                     category:{
-//                         select:{
-//                             name:true,
-//                             id:true,
-//                         }
-//                     }
-//                 }
-//                 })
-//         return { success: true, products: allProduct };
-//     }catch(error){
-//         return { success: false, error: `Failed to get all products ${error}` };
-//     }
-// }
+export const creating_rate = async (data:Rate) => {
+    try{
+        const rate = await prisma.rating.create({
+                        data:{
+                            score: data.score,
+                            review:data.review,
+                            productId: data.productId,
+                            customerId:data.customerId,
+                        }
+                })
+        return { success: true, created_rate: rate };
+    }catch(error){
+        return { success: false, error: `Failed to get all products ${error}` };
+    }
+}
 
-// export const get_product_by_id = async (productId:string) => {
-//     try{
-//         // productId must be a number but because of api it coming as string
-//         const product = await prisma.product.findUnique({
-//                 where:{
-//                     id:Number.parseInt(productId)
-//                 },
-//                 select:{
-//                     id:true,
-//                     name:true,
-//                     description:true,
-//                     price:true,
-//                     ownerId:true,
-//                     qty:true,
-//                     category:{
-//                         select:{
-//                             name:true,
-//                             id:true,
-//                         }
-//                     },
-//                 }
-//                 })
-//         return { success: true, product: product };
-//     }catch(error){
-//         return { success: false, error: `Failed to get  product by id ${error}` };
-//     }
-// }
+
+export const updating_rate = async (data:Rate) => {
+    try{
+        const rate = await prisma.rating.update({
+                        where:{
+                            id:data.id,
+                            productId:data.productId,
+                            customerId:data.customerId,
+                        },
+                        data:{
+                            score:data.score,
+                            review:data.review,
+
+                        }
+                })
+        return { success: true, updated_rate: rate };
+    }catch(error){
+        return { success: false, error: `Failed to get all products ${error}` };
+    }
+}
+
+
+export const deleting_rate = async (data:Rate) => {
+    try{
+        await prisma.rating.delete({
+                        where:{
+                            id:data.id,
+                            productId:data.productId,
+                            customerId:data.customerId,
+                        },
+                })
+        return { success: true };
+    }catch(error){
+        return { success: false, error: `Failed to get all products ${error}` };
+    }
+}
+

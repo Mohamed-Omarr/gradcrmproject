@@ -1,5 +1,5 @@
 import { NextApiRequest , NextApiResponse } from "next";
-import { updatingPassword } from "../../../../controllers/crm/profile/mangeUserInfoController";
+import { updatingPassword } from "../../../../controllers/crm/profile/mangeAdminInfoController";
 
 export default async function updatePassword(req:NextApiRequest , res:NextApiResponse) {
     if (req.method === "POST") {

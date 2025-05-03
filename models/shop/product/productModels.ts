@@ -10,14 +10,18 @@ export const get_all_product = async () => {
                     price:true,
                     ownerId:true,
                     qty:true,
+                    thumbnail:true,
+                    colors:true,
+                    sizes:true,
                     category:{
                         select:{
                             name:true,
                             id:true,
                         }
-                    }
+                    },
                 }
                 })
+                
         return { success: true, products: allProduct };
     }catch(error){
         return { success: false, error: `Failed to get all products ${error}` };
@@ -29,7 +33,7 @@ export const get_product_by_id = async (productId:string) => {
         // productId must be a number but because of api it coming as string
         const product = await prisma.product.findUnique({
                 where:{
-                    id:Number.parseInt(productId)
+                    id:Number(productId),
                 },
                 select:{
                     id:true,
@@ -38,12 +42,21 @@ export const get_product_by_id = async (productId:string) => {
                     price:true,
                     ownerId:true,
                     qty:true,
+                    thumbnail:true,
+                    colors:true,
+                    sizes:true,
                     category:{
                         select:{
                             name:true,
                             id:true,
                         }
                     },
+                    ratings:{
+                        select:{
+                            score:true,
+                            review:true,
+                        }
+                    }
                 }
                 })
         return { success: true, product: product };

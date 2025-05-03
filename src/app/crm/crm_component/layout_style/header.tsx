@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useAdminInfo } from "@/hooks/share-admin-context";
+import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { useRouter } from "next/navigation";
 import axiosAdmin from "@/lib/axios/axiosAdmin";
 
@@ -22,7 +22,7 @@ export function Header() {
 
   const onLogout = async () => {
     await axiosAdmin
-      .post("crm/auth/logout", {
+      .post("auth/logout", {
         userId: admin_info?.id,
         userRole: admin_info?.role,
       })

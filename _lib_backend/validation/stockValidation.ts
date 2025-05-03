@@ -4,7 +4,7 @@ export const  validationCreateStock = z.object({
     name: z.string().min(1,{message:"can not be empty "}),
     categoryId: z.preprocess((val)=>Number(val) ,z.number({message:"type of id must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
     ownerId: z.string().min(1),
-    description: z.string().min(1).optional(),
+    description: z.string().optional(),
 })
 
 export const validationRemoveStock = z.object({
@@ -16,7 +16,7 @@ export const validationRemoveStock = z.object({
 export const validationUpdateStock = z.object({
     id: z.preprocess((val)=>Number(val) ,z.number({message:"type of id must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
     name: z.string().min(1,{message:"can not be empty"}).optional(),
-    description: z.string().min(1).optional(),
+    description: z.string().optional(),
     categoryId: z.preprocess((val)=>Number(val) ,z.number({message:"type of id must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})).optional(),
     ownerId: z.string().min(1)
 })

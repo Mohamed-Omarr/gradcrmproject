@@ -70,22 +70,24 @@ model Customer {
   createdAt    DateTime @default(now())
   role         String
   refreshToken String?  @db.Text
-  ratings Rating[]
+  ratings      Rating[]
 }
 
 // Product
 model Product {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
-  price       Int
+  price       Float
   description String?
+  thumbnail   String
+  images      ProductImages[]
   qty         Int
 
   colors Colors[] @relation("ProductColors")
 
   sizes Sizes[] @relation("ProductSizes")
 
-  ratings         Rating[]
+  ratings Rating[] @relation("ProductRatings")
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
@@ -94,11 +96,18 @@ model Product {
   ownerId String
 }
 
+model ProductImages {
+  id        Int     @id @default(autoincrement())
+  url       String
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+}
+
 // Colors
 model Colors {
   id   Int    @id @default(autoincrement())
   name String
-  Code String
+  code String
 
   products Product[] @relation("ProductColors")
 
@@ -108,24 +117,25 @@ model Colors {
 
 // Sizes
 model Sizes {
-  id   Int    @id @default(autoincrement())
-  Code String
-
+  id       Int       @id @default(autoincrement())
+  code     String
+  name     String
   products Product[] @relation("ProductSizes")
 }
 
 // Rates
 model Rating {
-  id   Int    @id @default(autoincrement())
-  score Float
-  review  String?
+  id        Int      @id @default(autoincrement())
+  score     Int 
+  review    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(name:"ProductRatings",fields: [productId], references: [id])
   productId Int
 
-  customer   Customer  @relation(fields: [customerId], references: [id])
+
+  customer   Customer @relation(fields: [customerId], references: [id])
   customerId String
 }
 

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { ZodError } from "zod";
 import { ValidateUserLogin, ValidateUserRegister } from "../../../_lib_backend/validation/authValidation";
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient";
-import { formatZodError } from "../../../_lib_backend/validation/zodError";
+import { formatZodError } from "../../../_lib_backend/validation/zodHelper/zodError";
 import { generateToken } from "../../../_lib_backend/token/generateToken";
 import { verifyToken } from "../../../_lib_backend/token/verifyToken";
 import { deleteToken } from "../../../_lib_backend/token/deleteToken";

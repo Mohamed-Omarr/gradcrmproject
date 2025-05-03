@@ -1,18 +1,18 @@
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
-export const addProducts = async (data:Product) => {
 
+export const addProducts = async (data:Product,thumbnailImage:string) => {
     try{
+
         const addedProduct = await prisma.product.create({
-            
             data:{
                 name:data.name,
-                price: Number.parseInt(data.price),
+                price: data.price,
                 description: data.description,
-                qty:Number.parseInt(data.qty),
+                qty:data.qty,
                 ownerId:data.ownerId,
-                categoryId:Number.parseInt(data.categoryId),
-                
+                categoryId:data.categoryId,
+                thumbnail:thumbnailImage,
             },
             include:{
                 category:{
@@ -21,7 +21,6 @@ export const addProducts = async (data:Product) => {
                     }
                 }
             }
-            
         })
         return {success:true,createdNewProduct:addedProduct}
     }catch(error){
@@ -33,7 +32,7 @@ export const deleteProducts = async (data:removeProduct) => {
     try{
         await prisma.product.delete({
             where:{
-                id: Number.parseInt(data.id),
+                id:data.id,
                 ownerId: data.ownerId
             }
         })
@@ -43,24 +42,39 @@ export const deleteProducts = async (data:removeProduct) => {
     }
 }
 
-export const updateProducts = async (data:Product) => {
+export const updateProducts = async (data:Product,thumbnailImage:string) => {
     try{
         const updatedProduct = await prisma.product.update({
             where:{
-                id: Number.parseInt(data.id),
+                id: data.id,
                 ownerId: data.ownerId
             },
             data:{
                 name:data.name,
-                price: Number.parseInt(data.price),
+                price: data.price,
                 description: data.description,
-                qty:Number.parseInt(data.qty),
-                categoryId:Number.parseInt(data.categoryId)
+                qty:data.qty,
+                categoryId:data.categoryId,
+                thumbnail:thumbnailImage,
             },
             include:{
                 category:{
                     select:{
                         name:true
+                    }
+                },
+                colors:{
+                    select:{
+                        name:true,
+                        code:true,
+                        id:true,
+                    }
+                },
+                sizes:{
+                    select:{
+                        name:true,
+                        code:true,
+                        id:true,
                     }
                 }
             }
@@ -72,8 +86,6 @@ export const updateProducts = async (data:Product) => {
     }
 }
 
-
-
 export const getProducts = async (ownerId:string) => {
     try{
         const allProduct = await prisma.product.findMany({
@@ -84,6 +96,20 @@ export const getProducts = async (ownerId:string) => {
                 category:{
                     select:{
                         name:true
+                    }
+                },
+                colors:{
+                    select:{
+                        name:true,
+                        code:true,
+                        id:true,
+                    }
+                },
+                sizes:{
+                    select:{
+                        name:true,
+                        code:true,
+                        id:true,
                     }
                 }
             }

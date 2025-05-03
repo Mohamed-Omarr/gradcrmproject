@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import { frequentExit } from "../../../_lib_backend/token/frequentExit";
 
 const axiosAdmin = axios.create({
-  baseURL: "http://localhost:3000/api/",
+  baseURL: "http://localhost:3000/api/crm/",
   withCredentials: true,
 });
 

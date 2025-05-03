@@ -26,7 +26,7 @@ function Products({ product }: { product: ShopProduct[] }) {
           <Link href={`/product`}>
             <div className="bg-gray-50">
               <Image
-                src="/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg"
+                src={item.thumbnail}
                 alt="Product image"
                 width={220}
                 height={330}

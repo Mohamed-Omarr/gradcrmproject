@@ -3,18 +3,15 @@ import { changingName } from "../../../models/crm/profile/changingName";
 import { changingEmail } from "../../../models/crm/profile/changingEmail";
 import { changingPassword } from "../../../models/crm/profile/changingPassword";
 import bcrypt from "bcryptjs";
-import { ZodError } from "zod";
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient";
 import { validationUpdateEmail, validationUpdatePassword, validationUpdateUsername } from "../../../_lib_backend/validation/updatingUserInfoValidation";
-import { formatZodError } from "../../../_lib_backend/validation/zodError";
-
+import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/zodValidatorHelper";
 
 export const updatingAdminName = async (req:NextApiRequest,res:NextApiResponse) => {
     try{
-        const data:update_name = req.body;
-        try {
             
-            validationUpdateUsername.parse(data)
+            const data = zodValidatorHelper(validationUpdateUsername,req.body,res);
+
             const scanId = await prisma.admin.findUnique({where:{id:data.id,name:data.previousName}});
 
             if (!scanId) {
@@ -25,16 +22,13 @@ export const updatingAdminName = async (req:NextApiRequest,res:NextApiResponse) 
                 return res.status(400).json({error:`Failed Updating Name : Name can not be empty `}) 
             }
 
-            await changingName(data);
+            const resultChaning = await changingName(data);
 
-            return res.status(200).json({message:"Updated Successfully"});
-
-        } catch(error){
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
+            if (resultChaning.success) {
+                return res.status(200).json({message:"Updated Successfully"});
+            } else {
+                return res.status(500).json({message:"Failed Updating Name",error:resultChaning.error});
             }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
 
     
     }catch(error){
@@ -44,9 +38,7 @@ export const updatingAdminName = async (req:NextApiRequest,res:NextApiResponse) 
 
 export const updatingEmail = async (req:NextApiRequest,res:NextApiResponse) => {
     try{
-        const data:update_email = req.body;
-        try {
-            validationUpdateEmail.parse(data)
+            const data = zodValidatorHelper(validationUpdateEmail,req.body,res);
 
             const scanId = await prisma.admin.findUnique({where:{id:data.id,email:data.previousEmail}});
 
@@ -58,28 +50,26 @@ export const updatingEmail = async (req:NextApiRequest,res:NextApiResponse) => {
                     
         if(!isMatch) return res.status(401).json({error:"Invalid Password"});
 
-        await changingEmail(data);
+        const resultChaning = await changingEmail(data);
 
-        return res.status(200).json({message:"Updated Successfully"});
-
-        }catch(error){
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
-            }
-            return res.status(400).json({error:`validation Failed: ${error}`})
+        if (resultChaning.success) {
+            return res.status(200).json({message:"Updated Successfully"});
+        } else {
+            return res.status(500).json({message:"Failed Updating Email",error:resultChaning.error});
         }
 
     }catch(error){
         return res.status(500).json({error:`Internal Server Error:${error}`})
     }
+
 }
 
 export const updatingPassword = async (req:NextApiRequest,res:NextApiResponse) => {
     try{
-        const data:update_password = req.body;
-        try{
-            validationUpdatePassword.parse(data)
+            const data = zodValidatorHelper(validationUpdatePassword,req.body,res);
+
             const scanId = await prisma.admin.findUnique({where:{id:data.id,email:data.email}});
+            
             if (!scanId) {
                 return res.status(400).json({error:"User Not Found"})
             }
@@ -102,16 +92,15 @@ export const updatingPassword = async (req:NextApiRequest,res:NextApiResponse) =
 
             const hashedPassword = await bcrypt.hash(data.newPassword,10)
             
-            await changingPassword(data,hashedPassword);
+            const resultChaning = await changingPassword(data,hashedPassword);
 
-            return res.status(200).json({message:"Updated Successfully"});
-        }catch(error){
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
-            }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
+                if (resultChaning.success) {
+                    return res.status(200).json({message:"Updated Successfully"});
         
+                } else {
+                    return res.status(500).json({message:"Failed Updating Password",error:resultChaning.error});
+                }
+
     }catch(error){
         return res.status(500).json({error:`Internal Server Error:${error}`})
     }

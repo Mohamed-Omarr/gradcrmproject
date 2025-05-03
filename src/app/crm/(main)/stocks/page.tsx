@@ -23,7 +23,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import axiosAdmin from "@/lib/axios/axiosAdmin";
-import { useAdminInfo } from "@/hooks/share-admin-context";
+import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 
@@ -34,22 +34,22 @@ export default function Stocks() {
   const [stockData, setStocks] = useState<Stock[]>([]);
   const [categoryData, setCategories] = useState<Category[]>([]);
   const [update, setUpdate] = useState<boolean>(false);
-  const [updateFollowingId, setUpdateFollowingId] = useState<string | null>(
-    null
+  const [updateFollowingId, setUpdateFollowingId] = useState<number | undefined>(
+    undefined
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
   const [currentCategoryName, setCurrentCategoryName] = useState<string>("");
   useState<string>("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(
+    undefined
   );
 
   const admin_info = useAdminInfo();
 
   const get_category_data = async () => {
     try {
-      const res = await axiosAdmin.get("crm/category/categoryMethods");
+      const res = await axiosAdmin.get("category/categoryMethods");
 
       setCategories(res.data.categories);
     } catch (err) {
@@ -59,7 +59,7 @@ export default function Stocks() {
 
   const get_stock_data = async () => {
     try {
-      const res = await axiosAdmin.get("crm/stock/stockMethods");
+      const res = await axiosAdmin.get("stock/stockMethods");
       get_category_data();
       setStocks(res.data.stocks);
     } catch (err) {
@@ -81,7 +81,7 @@ export default function Stocks() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
     try {
-      const res = await axiosAdmin.post("crm/stock/stockMethods", {
+      const res = await axiosAdmin.post("stock/stockMethods", {
         name: getName,
         description: getDesc,
         ownerId: admin_info?.id,
@@ -101,7 +101,7 @@ export default function Stocks() {
 
       // changing state to default
       setSelectedCategoryName("");
-      setSelectedCategoryId(null);
+      setSelectedCategoryId(undefined);
       setGetName("");
       setGetDesc("");
     } catch (err) {
@@ -109,9 +109,9 @@ export default function Stocks() {
     }
   };
 
-  const onDelete = async (itemId: string) => {
+  const onDelete = async (itemId: number) => {
     try {
-      const res = await axiosAdmin.delete("crm/stock/stockMethods", {
+      const res = await axiosAdmin.delete("stock/stockMethods", {
         data: {
           id: itemId,
           ownerId: admin_info?.id,
@@ -129,7 +129,7 @@ export default function Stocks() {
     e.preventDefault(); // Prevent default form submission
 
     try {
-      const res = await axiosAdmin.patch("crm/stock/stockMethods", {
+      const res = await axiosAdmin.patch("stock/stockMethods", {
         id: updateFollowingId,
         ownerId: admin_info?.id,
         name: getName,
@@ -151,10 +151,10 @@ export default function Stocks() {
       setOpenPopUp(false);
       // changing state to default
       setUpdate(false);
-      setUpdateFollowingId(null);
+      setUpdateFollowingId(undefined);
       setCurrentCategoryName("");
       setSelectedCategoryName("");
-      setSelectedCategoryId(null);
+      setSelectedCategoryId(undefined);
       setGetName("");
       setGetDesc("");
     } catch (err) {
@@ -187,10 +187,10 @@ export default function Stocks() {
             setOpenPopUp(isOpen);
             if (!isOpen) {
               setUpdate(false);
-              setUpdateFollowingId(null);
+              setUpdateFollowingId(undefined);
               setCurrentCategoryName("");
               setSelectedCategoryName("");
-              setSelectedCategoryId(null);
+              setSelectedCategoryId(undefined);
               setGetName("");
               setGetDesc("");
             }

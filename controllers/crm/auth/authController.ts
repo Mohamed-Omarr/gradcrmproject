@@ -1,23 +1,19 @@
 import { NextApiRequest , NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import { userLogin } from "../../../models/crm/auth/userLogin";
-import { ZodError } from "zod";
 import { createAdmin } from "../../../models/crm/auth/createAdmin";
 import { ValidateUserLogin, ValidateUserRegister } from "../../../_lib_backend/validation/authValidation";
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient";
-import { formatZodError } from "../../../_lib_backend/validation/zodError";
 import { generateToken } from "../../../_lib_backend/token/generateToken";
 import { verifyToken } from "../../../_lib_backend/token/verifyToken";
 import { userLogout } from "../../../models/crm/auth/userLogout";
 import { deleteToken } from "../../../_lib_backend/token/deleteToken";
 import jwt from "jsonwebtoken";
+import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/zodValidatorHelper";
 
 export const registerUser = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
-        const data = req.body;
-        try { 
-            // parse will throw an error 
-            ValidateUserRegister.parse(data);
+            const data = zodValidatorHelper(ValidateUserRegister,req.body,res)
 
             const hashedPassword = await bcrypt.hash(data.password,10);
 
@@ -28,30 +24,23 @@ export const registerUser = async (req:NextApiRequest , res:NextApiResponse) => 
 
             if (scan) {return res.status(400).json({error:`Email exits`})}
 
-            await createAdmin(user)
+            const registerDbResult = await createAdmin(user)
 
-            return res.status(201).json({message:"User register successfully"})
-
-        } catch (error) {
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
+            if (registerDbResult.success) {
+                return res.status(201).json({message:"User register successfully"})
+            } else {
+                return res.status(500).json({message:"Failed register",error:registerDbResult.error})
             }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        } 
 
     } catch(error){
         return res.status(500).json({error:`Internal Server Error:${error}`})
     }
 }
 
-
-
 export const loginUser = async (req:NextApiRequest,res:NextApiResponse) => {
     try {
-        const data = req.body;
-        try {
              // parse will throw an error 
-            ValidateUserLogin.parse(data);
+            const data = zodValidatorHelper(ValidateUserLogin,req.body,res)
             
             const user = await prisma.admin.findUnique({where:{email:data.email},select:{id:true,email:true,name:true,role:true,password:true}})
 
@@ -59,7 +48,7 @@ export const loginUser = async (req:NextApiRequest,res:NextApiResponse) => {
 
             const isMatch = await bcrypt.compare(data.password,user.password);
             
-            if(!isMatch) return res.status(401).json({error:"Invalid credentials"});
+            if(!isMatch) return res.status(400).json({error:"Invalid credentials"});
 
             const limitAccess = {
                 id:user.id,
@@ -67,18 +56,23 @@ export const loginUser = async (req:NextApiRequest,res:NextApiResponse) => {
                 role:user.role,
                 name:user.name,
             }
+            
             //  await prisma model
-            await userLogin(limitAccess.id,limitAccess.role);
+            const resultLoginDbB = await userLogin(limitAccess.id,limitAccess.role);
+            
+            if (resultLoginDbB.success) {
+                // await generate the token
+                const tokenResult = await generateToken(limitAccess,res);
 
-            // await generate the token
-            await generateToken(limitAccess,res);
+                if (tokenResult.success){
+                    res.status(200).json({message: "login success",accessToken:tokenResult.accessToken})
+                }else{
+                    return res.status(400).json({error:`Failed to generate token:${tokenResult.error}`})
+                }
 
-        } catch(error){
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
+            }else{
+                return res.status(500).json({error:resultLoginDbB.error})
             }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
 
     } catch(error) {
         return res.status(500).json({error:`Internal Server Error:${error}`})

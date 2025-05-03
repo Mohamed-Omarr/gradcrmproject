@@ -12,7 +12,7 @@ import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function ProductsPage() {
+export default function AllProductsPage() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -31,8 +31,9 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("/api/shop/product/productMethods"); // <-- your API route
+      const res = await axios.get("/api/shop/product/productMethods"); 
       setProducts(res.data.products);
+      
       const prices = res.data.products.map((p: ShopProduct) => p.price);
 
       setHightPrice(Math.max(...prices));
@@ -328,7 +329,7 @@ export default function ProductsPage() {
                   <Link href={`/product`}>
                     <div className="bg-gray-50">
                       <Image
-                        src="/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg"
+                        src={item.thumbnail}
                         alt="Product image"
                         width={220}
                         height={330}

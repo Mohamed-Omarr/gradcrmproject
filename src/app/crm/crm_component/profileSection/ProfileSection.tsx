@@ -48,7 +48,7 @@ function ProfileSection(AdminInfo: {
   const onSubmit = async () => {
     setIsLoading(true);
     try {
-      const res = await axiosAdmin.post("crm/profile/updateAdminName", {
+      const res = await axiosAdmin.post("profile/updateAdminName", {
         id: AdminInfo.id,
         previousName: newData.previousName,
         newName: new_Name,

@@ -54,7 +54,7 @@ function EmailSection(AdminInfo: { email: string; id: string }) {
     setIsLoading(true);
     try {
       const newData = getValues();
-      const res = await axiosAdmin.post("crm/profile/updateEmail", {
+      const res = await axiosAdmin.post("profile/updateEmail", {
         id: AdminInfo.id,
         previousEmail: newData.previousEmail,
         newEmail: newData.newEmail,

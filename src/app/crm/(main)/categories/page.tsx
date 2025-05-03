@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import axiosAdmin from "@/lib/axios/axiosAdmin";
-import { useAdminInfo } from "@/hooks/share-admin-context";
+import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 
@@ -26,15 +26,13 @@ export default function Categories() {
   const [openPopUp, setOpenPopUp] = useState<boolean>(false);
   const [categoryData, setCategories] = useState<Category[] | []>([]);
   const [update, setUpdate] = useState<boolean>(false);
-  const [updateFollowingId, setUpdateFollowingId] = useState<string | null>(
-    null
-  );
+  const [updateFollowingId, setUpdateFollowingId] = useState<number | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const admin_info = useAdminInfo();
 
   const get_category_data = async () => {
     try {
-      const res = await axiosAdmin.get("crm/category/categoryMethods");
+      const res = await axiosAdmin.get("category/categoryMethods");
       setCategories(res.data.categories);
     } catch (err) {
       toastingError(err);
@@ -44,7 +42,7 @@ export default function Categories() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
     try {
-      const res = await axiosAdmin.post("crm/category/categoryMethods", {
+      const res = await axiosAdmin.post("category/categoryMethods", {
         name: getName,
         description: getDesc,
         ownerId: admin_info?.id,
@@ -67,9 +65,9 @@ export default function Categories() {
     }
   };
 
-  const onDelete = async (itemId: string) => {
+  const onDelete = async (itemId: number) => {
     try {
-      const res = await axiosAdmin.delete("crm/category/categoryMethods", {
+      const res = await axiosAdmin.delete("category/categoryMethods", {
         data: {
           id: itemId,
           ownerId: admin_info?.id,
@@ -85,7 +83,7 @@ export default function Categories() {
   const onUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
     try {
-      const res = await axiosAdmin.patch("crm/category/categoryMethods", {
+      const res = await axiosAdmin.patch("category/categoryMethods", {
         id: updateFollowingId,
         ownerId: admin_info?.id,
         name: getName,
@@ -98,7 +96,7 @@ export default function Categories() {
             : product
         )
       );
-      setUpdateFollowingId(null);
+      setUpdateFollowingId(undefined);
       setGetName("");
       setGetDesc("");
       toastingSuccess(res);
@@ -133,7 +131,7 @@ export default function Categories() {
             setOpenPopUp(isOpen);
             if (update) {
               setUpdate(false);
-              setUpdateFollowingId(null);
+              setUpdateFollowingId(undefined);
               setGetName("");
               setGetDesc("");
             }
