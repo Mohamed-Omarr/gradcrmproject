@@ -9,7 +9,6 @@ export const customerLoginDB = async (userId:string,userRole:string) => {
                 userId:userId,
             }
         })
-        
         return {success:true}
     } catch(err) {
         return {success:false,error:err}

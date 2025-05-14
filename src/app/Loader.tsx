@@ -6,7 +6,7 @@ import React from 'react'
 
 function Loader() {
   return (
-    <Skeleton count={5}/> 
+    <Skeleton count={1}/> 
   )
 }
 

@@ -52,7 +52,7 @@ export const deleteStock = async (req:NextApiRequest, res:NextApiResponse) => {
             const deleting = await deleteStocks(data)
 
             if (deleting.success) {
-                return res.status(204).json({message:"Deleted a stock successfully ",unselectedCategory:deleting.unselectedCategory})
+                return res.status(200).json({message:"Deleted a stock successfully ",unselectedCategory:deleting.unselectedCategory})
             }else {
                 return res.status(500).json({error:`${deleting.error}`})
             }

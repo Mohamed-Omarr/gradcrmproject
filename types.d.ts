@@ -7,7 +7,7 @@ type Product = {
     images: ProductImages[]
     ownerId: string
     qty: number
-    rate:   Rate
+    ratings:   Rate[]
     category:   Category,
     categoryId:  number,
     colors: Colors[],
@@ -17,7 +17,6 @@ type Product = {
 type ProductImages = {
     id:number,
     url:      string,
-    product:   Product,
     productId: number,
 }
 
@@ -65,6 +64,13 @@ type adminData = {
     id:string,
 }
 
+type customerData = {
+    email:string,
+    role:string,
+    name:string,
+    id:string,
+}
+
 
 type update_name = {
     id:string,
@@ -106,6 +112,8 @@ type ShopProduct = {
     thumbnail: string
     colors:Colors[],
     sizes:Sizes[],
+    ratings:   Rate[]
+    wishlist:    WishlistItems[]
 }
 
 type ShopCategory = {
@@ -117,9 +125,11 @@ type ShopCategory = {
 type Rate = {
     id:number
     productId: number;
-    score:float;
-    review:  string | undefined
+    score:number;
+    review:  string
     customerId:string
+    createdAt:    string 
+    updatedAt:    string 
 }
 
 type removeRate = {
@@ -164,3 +174,14 @@ type ColorOfProduct = {
 }
 
 
+type WishlistItems = {
+    products:   Product[]
+    productId:  number,
+    customerId: string,
+}
+
+type DeleteWishlistItems = {
+    id:number,
+    productId:  number,
+    customerId: string,
+}

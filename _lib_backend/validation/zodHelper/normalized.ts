@@ -20,6 +20,7 @@ export function normalizeToArray(data) {
   
   for (const key in data) {
     const value = data[key];
+    
     normalized[key] = JSON.parse(value);
   }
   

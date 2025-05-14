@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import { customerLogoutDB } from "../../../models/shop/auth/customerLogoutModel";
 import { createCustomerDB } from "../../../models/shop/auth/createCustomerModel";
 import { customerLoginDB } from "../../../models/shop/auth/customerLoginModel";
+import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/zodValidatorHelper";
 
 export const customer_register = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
@@ -49,10 +50,7 @@ export const customer_register = async (req:NextApiRequest , res:NextApiResponse
 
 export const customer_login = async (req:NextApiRequest,res:NextApiResponse) => {
     try {
-        const data = req.body;
-        try {
-             // parse will throw an error 
-            ValidateUserLogin.parse(data);
+            const data = zodValidatorHelper(ValidateUserLogin,req.body,res);
             
             const user = await prisma.customer.findUnique({where:{email:data.email},select:{id:true,email:true,name:true,role:true,password:true}})
 
@@ -73,18 +71,17 @@ export const customer_login = async (req:NextApiRequest,res:NextApiResponse) => 
 
             if(pushingDB.success){
                 // await generate the token
-                await generateToken(limitAccess,res);
+                const tokenResult =  await generateToken(limitAccess,res);
+                
+                if (tokenResult.success) {
+                    return res.status(200).json({message:"Login successfully",accessToken:tokenResult.accessToken})
+                } else {
+                    return res.status(500).json({message:"Failed to login",error:tokenResult.error})
+                }
             }else {
                 return res.status(400).json({message:"Failed to login",error:pushingDB.error})
             }
         
-        } catch(error){
-            if (error instanceof ZodError) {
-                return res.status(400).json({error:formatZodError(error)})
-            }
-            return res.status(400).json({error:`validation Failed: ${error}`})
-        }
-
     } catch(error) {
         return res.status(500).json({error:`Internal Server Error:${error}`})
     }

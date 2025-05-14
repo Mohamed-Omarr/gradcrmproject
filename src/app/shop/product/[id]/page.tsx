@@ -1,10 +1,10 @@
-import axios from "axios";
 import ProductComponent from "@/app/ShopComponents/ProductComponent";
+import axios from "axios";
 
 async function getProductById(id: string) {
   try {
     const res = await axios.get(
-      `http://localhost:3000/api/shop/product/productMethods?itemId=${id}`
+      `http://localhost:3000/api/shop/product/singleProduct?Id=${id}`
     );
     return res.data.product;
   } catch (error) {

@@ -14,9 +14,6 @@ export default async function  rateHandler (req:NextApiRequest , res:NextApiResp
     if (req.method === "DELETE") {
         return deleteRateOfProduct(req,res)
     }
-    
-    if (req.method === "GET") {
-        return deleteRateOfProduct(req,res)
-    }
+    return res.status(405).json({error:"Method Not Allowed"});
     
 }

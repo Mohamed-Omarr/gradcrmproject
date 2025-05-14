@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getCookiesToken } from "../../_lib_backend/token/getCookiesToken";
+import { frequentExit } from "../../_lib_backend/token/frequentExit";
 
 export const limitedAdminInfo = async () =>  {
     try{
@@ -11,6 +12,7 @@ export const limitedAdminInfo = async () =>  {
         });
         return res.data.user;
     }catch(err){
+        await frequentExit();
         return `Failed to get admin info: ${err}`
     }
 

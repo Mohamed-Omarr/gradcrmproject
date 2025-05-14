@@ -1,7 +1,9 @@
 import prisma from "../../../../_lib_backend/prismaClient/PrismaClient"
 
 export const creating_colors = async (data:Colors) => {
+    
     try{
+        
         const colors = await prisma.colors.create({
             data:{
                 code:data.code,
@@ -95,7 +97,8 @@ export const creating_product_color = async (data:ColorOfProduct) => {
 
 export const updating_product_color = async (data:ColorOfProduct) => {
     try{
-        const colors = await prisma.product.update({
+        
+         await prisma.product.update({
                     where:{
                         id:data.productId,
                     },
@@ -104,11 +107,8 @@ export const updating_product_color = async (data:ColorOfProduct) => {
                             set:data.colorIds.map((id) => ({ id }))
                         }
                     },
-                    include:{
-                        colors:true
-                    }
                 })
-        return { success: true, updated_colors_for_product: colors };
+        return { success: true};
     }catch(error){
         return { success: false, error: `Failed to get all sizes ${error}` };
     }

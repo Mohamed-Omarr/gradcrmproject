@@ -9,7 +9,10 @@ import { zodValidatorHelper } from "../../../../_lib_backend/validation/zodHelpe
 
 export const createColor = async ( req:NextApiRequest ,res:NextApiResponse  ) => {
     try {
+        console.log("b4",req.body);
+        
                 const data:Colors = zodValidatorHelper(validationCreateColors,req.body,res)
+        console.log("f4",data);
                 
                 const findAdmin = await prisma.admin.findUnique({where:{id:data.ownerId}})
                 
@@ -61,7 +64,7 @@ export const deleteColor = async ( req:NextApiRequest ,res:NextApiResponse  ) =>
                  const delete_colors = await deleting_colors(data)
     
                  if(delete_colors.success){
-                     return res.status(204 ).json({message:" Deleted successfully "})
+                     return res.status(200).json({message:" Deleted successfully "})
                  } else {
                      return res.status(500).json({error:delete_colors.error})
                  }
@@ -125,7 +128,7 @@ export const updateColorOfProduct = async ( req:NextApiRequest ,res:NextApiRespo
                 const update_colors = await updating_product_color(data)
     
                  if(update_colors.success){
-                     return res.status(200).json({message:" Updated successfully ",updatedColors:update_colors.updated_colors_for_product})
+                     return res.status(200).json({message:" Updated successfully"})
                  } else {
                      return res.status(500).json({error:update_colors.error})
                  }

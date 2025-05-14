@@ -9,7 +9,7 @@ function FeatureSection() {
   const [products, setProducts] = useState([]);
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("/api/shop/product/productMethods"); 
+      const res = await axios.get("/api/shop/product/allProducts");
       setProducts(res.data.products);
     } catch (error) {
       console.error("Error fetching products", error);
@@ -18,7 +18,7 @@ function FeatureSection() {
   useEffect(() => {
     fetchProducts();
   }, []);
-  
+
   const isActive = (value: string) => Feature === value;
 
   return (
@@ -36,7 +36,6 @@ function FeatureSection() {
                   ? "text-white bg-gray-900"
                   : "text-gray-900 bg-gray-100 hover:bg-gray-200"
               } ${index === 0 ? "rounded-l-lg" : "rounded-r-lg"}`}
-              aria-selected={isActive(label)}
             >
               {label}
             </button>
@@ -49,7 +48,7 @@ function FeatureSection() {
           role="tabpanel"
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
         >
-          <NewArrivals products={products}/>
+          <NewArrivals products={products} />
         </div>
       ) : (
         <div

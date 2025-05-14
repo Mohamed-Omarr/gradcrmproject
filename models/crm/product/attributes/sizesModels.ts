@@ -86,7 +86,7 @@ export const creating_product_size = async (data:SizeOfProduct) => {
 
 export const updating_product_size = async (data:SizeOfProduct) => {
     try{
-        const sizes = await prisma.product.update({
+         await prisma.product.update({
                     where:{
                         id:data.productId,
                     },
@@ -95,11 +95,8 @@ export const updating_product_size = async (data:SizeOfProduct) => {
                             set:data.sizeIds.map((id) => ({ id }))
                         }
                     },
-                    include:{
-                        sizes:true
-                    }
                 })
-        return { success: true, updated_sizes_for_product: sizes };
+        return { success: true};
     }catch(error){
         return { success: false, error: `Failed to get all sizes ${error}` };
     }

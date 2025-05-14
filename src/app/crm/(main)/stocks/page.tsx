@@ -214,6 +214,7 @@ export default function Stocks() {
                     : "Fill in the details for your new Stock. Click save when you are done."}
                 </DialogDescription>
               </DialogHeader>
+              
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Stock Name</Label>
@@ -303,6 +304,7 @@ export default function Stocks() {
                   </div>
                 )}
               </div>
+
               <DialogFooter className="!justify-center">
                 {update ? (
                   <Button type="submit">Update Stock</Button>

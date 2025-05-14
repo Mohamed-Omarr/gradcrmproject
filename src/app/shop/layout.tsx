@@ -5,6 +5,7 @@ import Header from "../ShopComponents/Header";
 import Footer from "../ShopComponents/Footer";
 import { Suspense } from "react";
 import Loader from "../Loader";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,13 +30,14 @@ export default function ShopLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased  py-5`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased py-5`}
       >
-        <Suspense fallback={<Loader />}>
-          <Header />
-          <main className="px-40">{children}</main>
-          <Footer />
-        </Suspense>
+        <Header />
+        <main className="px-40">
+          <Suspense fallback={<Loader />}>{children}</Suspense>
+        </main>
+        <Footer />
+        <ToastContainer/>
       </body>
     </html>
   );

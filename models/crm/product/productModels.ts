@@ -2,16 +2,17 @@ import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
 
 export const addProducts = async (data:Product,thumbnailImage:string) => {
+    
     try{
 
         const addedProduct = await prisma.product.create({
             data:{
                 name:data.name,
-                price: data.price,
+                price: Number(data.price),
                 description: data.description,
-                qty:data.qty,
+                qty:Number(data.qty),
                 ownerId:data.ownerId,
-                categoryId:data.categoryId,
+                categoryId:Number(data.categoryId),
                 thumbnail:thumbnailImage,
             },
             include:{

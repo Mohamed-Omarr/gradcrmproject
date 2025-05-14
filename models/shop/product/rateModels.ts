@@ -28,7 +28,6 @@ export const updating_rate = async (data:Rate) => {
                         data:{
                             score:data.score,
                             review:data.review,
-
                         }
                 })
         return { success: true, updated_rate: rate };

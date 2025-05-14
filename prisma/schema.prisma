@@ -63,19 +63,21 @@ model Admin {
 
 // Customer
 model Customer {
-  id           String   @id @default(uuid())
+  id           String          @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String          @unique
   password     String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime        @default(now())
   role         String
-  refreshToken String?  @db.Text
+  refreshToken String?         @db.Text
   ratings      Rating[]
+  wishlist     WishlistItems[]
+  Cart         Cart[]
 }
 
 // Product
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   name        String
   price       Float
   description String?
@@ -89,11 +91,15 @@ model Product {
 
   ratings Rating[] @relation("ProductRatings")
 
+  wishlist WishlistItems[]
+
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
 
-  owner   Admin  @relation(fields: [ownerId], references: [id])
-  ownerId String
+  owner      Admin     @relation(fields: [ownerId], references: [id])
+  ownerId    String
+  CartItem   CartItem? @relation(fields: [cartItemId], references: [id])
+  cartItemId Int?
 }
 
 model ProductImages {
@@ -126,14 +132,13 @@ model Sizes {
 // Rates
 model Rating {
   id        Int      @id @default(autoincrement())
-  score     Int 
+  score     Int
   review    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product   Product @relation(name:"ProductRatings",fields: [productId], references: [id])
+  product   Product @relation(name: "ProductRatings", fields: [productId], references: [id])
   productId Int
-
 
   customer   Customer @relation(fields: [customerId], references: [id])
   customerId String
@@ -164,4 +169,35 @@ model Stock {
 
   owner   Admin  @relation(fields: [ownerId], references: [id])
   ownerId String
+}
+
+// wishlist
+model WishlistItems {
+  id Int @id @default(autoincrement())
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+
+  @@unique([customerId])
+  @@unique([productId])
+}
+
+// Cart
+model Cart {
+  id         Int        @id @default(autoincrement())
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  customerId String
+  createdAt  DateTime
+  updatedAt  DateTime
+  item       CartItem[]
+}
+
+model CartItem {
+  id       Int       @id @default(autoincrement())
+  products Product[]
+  Cart     Cart?     @relation(fields: [CartId], references: [id])
+  CartId   Int?
 }

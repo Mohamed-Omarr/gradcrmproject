@@ -8,7 +8,7 @@ function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="px-40 flex h-16 items-center">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
+        <Link href="/home" className="mr-6 flex items-center space-x-2">
           <Image
             src={CarImage}
             alt="Logo"
@@ -20,13 +20,13 @@ function Header() {
         </Link>
         <nav className="flex items-center space-x-4 lg:space-x-6 mr-4">
           <Link
-            href="/"
+            href="/home"
             className="text-sm font-medium transition-colors hover:text-gray-900"
           >
             Home
           </Link>
           <Link
-            href="/products"
+            href="/shop/products"
             className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
           >
             Shop

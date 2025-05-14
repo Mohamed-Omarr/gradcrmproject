@@ -6,8 +6,6 @@ export const  validationCreateProduct = z.object({
     description: z.string().optional(),
     ownerId: z.string().min(1),
     qty: z.preprocess((val)=>Number(val) ,z.number({message:"type of qty must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
-    colorId: z.number({message:"type of price must be a number"}).positive({message:"must be positive number"}),
-    sizeId: z.preprocess((val)=>Number(val) ,z.number({message:"type of price must be a number"}).positive({message:"must be positive number"})),
     categoryId: z.preprocess((val)=>Number(val) ,z.number({message:"type of id must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
 })
 
@@ -24,8 +22,6 @@ export const validationUpdateProduct = z.object({
     qty: z.preprocess((val)=>Number(val) ,z.number({message:"type of qty must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
     description: z.string().optional(),
     ownerId: z.string().min(1),
-    colorId: z.preprocess((val)=>Number(val) ,z.number({message:"type of price must be a number"}).positive({message:"must be positive number"})),
-    sizeId: z.preprocess((val)=>Number(val) ,z.number({message:"type of price must be a number"}).positive({message:"must be positive number"})),
     categoryId: z.preprocess((val)=>Number(val) ,z.number({message:"type of id must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
 })
 

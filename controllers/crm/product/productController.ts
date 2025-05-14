@@ -29,6 +29,7 @@ export const createProduct = async (req:NextApiRequest , res:NextApiResponse) =>
                 return res.status(400).json({error:"Failed the selected category Id Not Found"})
             }
 
+            
             const newProduct = await addProducts(data,files.thumbnail);
 
             if(newProduct.success){
@@ -46,6 +47,7 @@ export const createProduct = async (req:NextApiRequest , res:NextApiResponse) =>
 
 export const deleteProduct = async (req:NextApiRequest, res:NextApiResponse) => {
     try {
+        
             const data = zodValidatorHelper(validationRemoveProduct,req.body,res);
 
             const itemOwner = await prisma.admin.findUnique({where:{id:data.ownerId},select:{products:true}})
@@ -61,7 +63,7 @@ export const deleteProduct = async (req:NextApiRequest, res:NextApiResponse) => 
             const deleting = await deleteProducts(data)
             
             if (deleting.success) {
-                return res.status(204).json({message:"Deleted a product successfully "})
+                return res.status(200).json({message:"Deleted a product successfully"})
             }else {
                 return res.status(500).json({error:`${deleting.error}`})
             }
@@ -102,7 +104,7 @@ export const updateProduct = async (req:NextApiRequest, res:NextApiResponse) => 
                    return res.status(400).json({error:"Please change either the name or description or price or quantity or category"})
                } 
    
-               if (existingCategory.name === data.name && existingCategory.price){
+            //    if (existingCategory.name === data.name && existingCategory.price){
                    const updateResult = await  updateProducts(data,files.thumbnail);
                    
                    if(updateResult.success){
@@ -110,10 +112,10 @@ export const updateProduct = async (req:NextApiRequest, res:NextApiResponse) => 
                    }else{
                        return res.status(500).json({error:updateResult.error})
                    }
-               }
+            //    }
 
             // to handle other cases 
-            return res.status(200).json({message:" Updated product successfully "})
+            // return res.status(200).json({message:" Updated product successfully "})
    
        } catch (error){
            return res.status(500).json({error:`Internal Server Error:${error}`})

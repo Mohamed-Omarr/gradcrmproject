@@ -5,7 +5,7 @@ import { NextApiResponse } from "next";
 /**
  * Validates data using a Zod schema and sends response if validation fails
  * @param zodParseFunction Zod schema to validate against
- * @param data Data to validate (usually `fields` from formidable)
+ * @param data Data to validate (usually `fields` from form-urlencoded)
  * @param res NextApiResponse object
  * @returns Parsed data if valid, or null (after sending error response)
  */

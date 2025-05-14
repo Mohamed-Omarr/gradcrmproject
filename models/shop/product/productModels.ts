@@ -19,6 +19,12 @@ export const get_all_product = async () => {
                             id:true,
                         }
                     },
+                    ratings:{
+                        select:{
+                            score:true,
+                            review:true,
+                        }
+                    },
                 }
                 })
                 
@@ -53,13 +59,53 @@ export const get_product_by_id = async (productId:string) => {
                     },
                     ratings:{
                         select:{
+                            id:true,
                             score:true,
                             review:true,
+                            customerId:true,
+                            createdAt:true,
+                            updatedAt:true,
+                            customer:{
+                                select:{
+                                    id:true,
+                                    name:true,
+                                }
+                            }
+                        }
+                    },
+                    
+                }
+                })
+        return { success: true, product: product };
+    }catch(error){
+        return { success: false, error: `Failed to get  product by id ${error}` };
+    }
+}
+
+
+export const get_products_by_category = async (categoryId:string) => {
+    try{
+        // productId must be a number but because of api it coming as string
+        const products = await prisma.category.findUnique({
+                where:{
+                    id:Number(categoryId),
+                },
+                select:{
+                    products:{
+                        select:{
+                            name:true,
+                            thumbnail:true,
+                            price:true,
+                            ratings:{
+                                select:{
+                                    score:true,
+                                }
+                            }
                         }
                     }
                 }
                 })
-        return { success: true, product: product };
+        return { success: true, products: products };
     }catch(error){
         return { success: false, error: `Failed to get  product by id ${error}` };
     }

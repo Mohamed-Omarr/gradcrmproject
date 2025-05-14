@@ -58,7 +58,7 @@ export const deleteSize = async ( req:NextApiRequest ,res:NextApiResponse  ) => 
                  const delete_sizes = await deleting_sizes(data)
     
                  if(delete_sizes.success){
-                     return res.status(204).json({message:" Deleted successfully "})
+                     return res.status(200).json({message:" Deleted successfully "})
                  } else {
                      return res.status(500).json({error:delete_sizes.error})
                  }
@@ -115,7 +115,7 @@ export const updateSizeOfProduct = async ( req:NextApiRequest ,res:NextApiRespon
                 const update_sizes = await updating_product_size(data)
     
                  if(update_sizes.success){
-                     return res.status(200).json({message:" Updated successfully ",updatedSizes:update_sizes.updated_sizes_for_product})
+                     return res.status(200).json({message:" Updated successfully "})
                  } else {
                      return res.status(500).json({error:update_sizes.error})
                  }

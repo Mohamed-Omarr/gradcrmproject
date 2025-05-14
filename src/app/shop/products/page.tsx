@@ -28,12 +28,11 @@ export default function AllProductsPage() {
   });
   const [sortStatus, setSortStatus] = useState<string>("featured");
 
-
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("/api/shop/product/productMethods"); 
+      const res = await axios.get("/api/shop/product/allProducts");
       setProducts(res.data.products);
-      
+
       const prices = res.data.products.map((p: ShopProduct) => p.price);
 
       setHightPrice(Math.max(...prices));
@@ -93,11 +92,11 @@ export default function AllProductsPage() {
     // stock status filter
     switch (sortStatus) {
       case "price-high-low":
-        result = result.sort((a,b)=>Number(b.price) - Number(a.price));
+        result = result.sort((a, b) => Number(b.price) - Number(a.price));
         break;
 
       case "price-low-high":
-        result = result.sort((a,b)=>Number(a.price) - Number(b.price));
+        result = result.sort((a, b) => Number(a.price) - Number(b.price));
         break;
 
       case "newest":
@@ -112,9 +111,7 @@ export default function AllProductsPage() {
     }
 
     return result;
-  }, [filter, products, searchQuery,sortStatus]);
-
-  
+  }, [filter, products, searchQuery, sortStatus]);
 
   const handleCategoryChange = (categoryName: string) => {
     const updatedCategory = filter.categories.includes(categoryName);
@@ -162,7 +159,7 @@ export default function AllProductsPage() {
                 id="sort"
                 className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
                 value={sortStatus}
-                onChange={(e)=>setSortStatus(e.target.value)}
+                onChange={(e) => setSortStatus(e.target.value)}
               >
                 <option value="featured">Featured</option>
                 <option value="price-low-high">Price: Low to High</option>
@@ -312,61 +309,92 @@ export default function AllProductsPage() {
           {/* Product grid */}
           <div className="flex-1">
             {filteredProducts && filteredProducts.length > 0 ? (
-              filteredProducts.map((item) => (
-                <div
-                  key={item.id}
-                  className="group relative rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-1 max-w-[400px] duration-300"
-                >
-                  {/* Wishlist button */}
-                  <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="rounded-full bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
-                      {/* Heart icon */}
-                      <Heart />
-                    </button>
-                  </div>
+              filteredProducts.map((item) => {
+                const scores = item.ratings?.map((r) => r.score) || [];
+                const total = scores.reduce((acc, score) => acc + score, 0);
+                const avgRatingScore = scores.length
+                  ? total / scores.length
+                  : 0;
 
-                  {/* Product image */}
-                  <Link href={`/product`}>
-                    <div className="bg-gray-50">
-                      <Image
-                        src={item.thumbnail}
-                        alt="Product image"
-                        width={220}
-                        height={330}
-                        className="h-[330px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    </div>
-                  </Link>
-
-                  {/* Product details */}
-                  <div className="p-4 space-y-2">
-                    {/* Rating */}
-                    {/* <div className="flex items-center space-x-1 text-yellow-400">
-                      {[...Array(5)].map((_, i) => (
-                        <svg key={i} className="text-yellow-400"/>
-                      ))}
-                      <span className="ml-1 text-xs text-gray-600">rating</span>
-                    </div> */}
-
-                    {/* Product name */}
-                    <h3 className="text-sm font-semibold line-clamp-1 text-gray-900">
-                      {item.name}
-                    </h3>
-
-                    {/* Price */}
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm font-bold text-gray-900">
-                        ${item.price}
-                      </p>
+                return (
+                  <div
+                    key={item.id}
+                    className="group relative rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-1 max-w-[400px] duration-300"
+                  >
+                    {/* Wishlist button */}
+                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="rounded-full bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
+                        <Heart />
+                      </button>
                     </div>
 
-                    {/* Add to cart button */}
-                    <button className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
-                      <ShoppingCart /> Add to Cart
-                    </button>
+                    {/* Product image */}
+                    <Link href={`/product`}>
+                      <div className="bg-gray-50">
+                        <Image
+                          src={item.thumbnail}
+                          alt="Product image"
+                          width={220}
+                          height={330}
+                          className="h-[330px] w-full object-contain transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                    </Link>
+
+                    {/* Product details */}
+                    <div className="p-4 space-y-2">
+                      {/* Rating */}
+                      <div className="flex items-center space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill={
+                              i < Math.floor(avgRatingScore)
+                                ? "currentColor"
+                                : "none"
+                            }
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={
+                              i < Math.floor(avgRatingScore)
+                                ? "text-yellow-400"
+                                : "text-gray-300"
+                            }
+                          >
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                        <span className="ml-1 text-xs text-gray-600">
+                          {avgRatingScore.toFixed(1)}
+                        </span>
+                      </div>
+
+                      {/* Product name */}
+                      <h3 className="text-sm font-semibold line-clamp-1 text-gray-900">
+                        {item.name}
+                      </h3>
+
+                      {/* Price */}
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-bold text-gray-900">
+                          ${item.price}
+                        </p>
+                      </div>
+
+                      {/* Add to cart button */}
+                      <button className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        <ShoppingCart /> Add to Cart
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p>No products</p>
             )}

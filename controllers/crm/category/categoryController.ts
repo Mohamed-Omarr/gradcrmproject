@@ -51,7 +51,7 @@ export const deleteCategory = async (req:NextApiRequest, res:NextApiResponse) =>
             const deleting = await deleteCategories(data)
 
             if (deleting.success) {
-                return res.status(204).json({message:"Deleted a category successfully "})
+                return res.status(200).json({message:"Deleted a category successfully "})
             }else {
                 return res.status(400).json({error:`${deleting.error}`})
             }
@@ -116,6 +116,7 @@ export const getCategory = async (req:NextApiRequest, res:NextApiResponse) => {
             if(typeof tokenData !== "string"){
                 return res.status(401).json({message:" Invalid token ",error:tokenData.error})
             }
+            
             // tokenData all include the ownerId and it being passed to function.
             const get_categories = await getCategories(tokenData);
 

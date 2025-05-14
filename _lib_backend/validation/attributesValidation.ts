@@ -19,6 +19,7 @@ export const validationDeleteSizes = z.object({
 
 // colors section
 export const validationCreateColors = z.object({
+    ownerId: z.string().min(1),
     name: z.string().min(1,{message:"can not be empty "}),
     code: z.string().min(1,{message:"can not be empty "}),
 })
@@ -59,6 +60,6 @@ export const validationColorsOfProduct = z.object({
       z.number({
         message: "type of id must be a number"
       }).int({ message: "must be integer" })
-       .positive({ message: "must be positive number" })
+      .positive({ message: "must be positive number" })
     ),
   });

@@ -15,7 +15,6 @@ export default async function  colorsHandler (req:NextApiRequest , res:NextApiRe
         return await updateColor(req,res)  
     }
 
-
     if (req.method === "GET") {
         return await getColor(req,res)  
     }
