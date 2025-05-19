@@ -113,7 +113,8 @@ type ShopProduct = {
     colors:Colors[],
     sizes:Sizes[],
     ratings:   Rate[]
-    wishlist:    WishlistItems[]
+    wishlist:    WishlistItems[],
+    isWishListed:   boolean
 }
 
 type ShopCategory = {
@@ -128,6 +129,7 @@ type Rate = {
     score:number;
     review:  string
     customerId:string
+    customer:   customerData
     createdAt:    string 
     updatedAt:    string 
 }
@@ -175,7 +177,7 @@ type ColorOfProduct = {
 
 
 type WishlistItems = {
-    products:   Product[]
+    product:   ShopProduct[]
     productId:  number,
     customerId: string,
 }
@@ -184,4 +186,27 @@ type DeleteWishlistItems = {
     id:number,
     productId:  number,
     customerId: string,
+}
+
+type Address = {
+    id: number
+    customerId:  string,
+    addressType:  string,
+    street:  string,
+    city:  string,
+    country:  string,
+    default:  boolean,
+    zipCode:    number,
+}
+
+type DeleteAddress = {
+    id: number
+    customerId:  string,
+}
+
+type setToDefaultAddress = {
+    id: number
+    customerId:  string,
+    default:  boolean,
+    previousDefaultAddressId:  number,
 }

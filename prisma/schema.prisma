@@ -72,7 +72,8 @@ model Customer {
   refreshToken String?         @db.Text
   ratings      Rating[]
   wishlist     WishlistItems[]
-  Cart         Cart[]
+  Cart         Cart?
+  address      Address[]
 }
 
 // Product
@@ -93,13 +94,14 @@ model Product {
 
   wishlist WishlistItems[]
 
+  isWishListed Boolean @default(false)
+
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
 
-  owner      Admin     @relation(fields: [ownerId], references: [id])
-  ownerId    String
-  CartItem   CartItem? @relation(fields: [cartItemId], references: [id])
-  cartItemId Int?
+  owner     Admin      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  cartItems CartItem[]
 }
 
 model ProductImages {
@@ -189,15 +191,33 @@ model WishlistItems {
 model Cart {
   id         Int        @id @default(autoincrement())
   customer   Customer   @relation(fields: [customerId], references: [id])
-  customerId String
-  createdAt  DateTime
-  updatedAt  DateTime
-  item       CartItem[]
+  customerId String     @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  items      CartItem[]
 }
 
+// cartItem contains product with qty and total price of it 
 model CartItem {
-  id       Int       @id @default(autoincrement())
-  products Product[]
-  Cart     Cart?     @relation(fields: [CartId], references: [id])
-  CartId   Int?
+  id        Int     @id @default(autoincrement())
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    Int
+  quantity  Int
+  sku       String
+  total     Float
+}
+
+// Address of customer
+model Address {
+  id            Int       @id @default(autoincrement())
+  addressType   String
+  street String
+  city          String
+  zipCode       Int
+  country       String
+  default Boolean @default(false)
+  customer      Customer @relation(fields: [customerId], references: [id])
+  customerId    String
 }

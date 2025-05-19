@@ -11,6 +11,10 @@ import {
 import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
+import axiosClient from "@/lib/axios/axiosClient";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
+import { useRouter } from "next/navigation";
 
 export default function AllProductsPage() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -27,6 +31,7 @@ export default function AllProductsPage() {
     priceRange: [0, 0],
   });
   const [sortStatus, setSortStatus] = useState<string>("featured");
+  const router = useRouter();
 
   const fetchProducts = async () => {
     try {
@@ -54,6 +59,31 @@ export default function AllProductsPage() {
     } catch (error) {
       console.error("Error fetching products", error);
     }
+  };
+
+  // add to wishlist
+  const customerId = "e9346d15-b333-4312-85e5-1d090cc6b564";
+
+  const addingToWishlist = async (itemId: number) => {
+    await axiosClient
+      .post("wishlist/wishlistMethods", {
+        productId: itemId,
+        customerId: customerId,
+      })
+      .then((s) => toastingSuccess(s, router.refresh))
+      .catch((x) => toastingError(x));
+  };
+
+  const removeFromWishList = async (itemId: number) => {
+    await axiosClient
+      .delete("wishlist/wishlistMethods", {
+        data: {
+          productId: itemId,
+          customerId: customerId,
+        },
+      })
+      .then((s) => toastingSuccess(s, router.refresh))
+      .catch((x) => toastingError(x));
   };
 
   useEffect(() => {
@@ -322,9 +352,16 @@ export default function AllProductsPage() {
                     className="group relative rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-1 max-w-[400px] duration-300"
                   >
                     {/* Wishlist button */}
-                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="rounded-full bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
-                        <Heart />
+                    <div className="absolute  top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() =>
+                          item.isWishListed
+                            ? removeFromWishList(item.id)
+                            : addingToWishlist(item.id)
+                        }
+                        className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors"
+                      >
+                        <Heart fill={item.isWishListed ? "red" : "white"} />
                       </button>
                     </div>
 

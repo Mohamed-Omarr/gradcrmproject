@@ -1,10 +1,13 @@
 "use client"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Heart, ShoppingCart, Trash2 } from "lucide-react"
 import CarImag from "../../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg" 
+import axiosClient from "@/lib/axios/axiosClient"
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess"
+import { toastingError } from "@/lib/toast_message/toastingErrors"
+import { useRouter } from "next/navigation"
 // Mock wishlist data - in a real app, this would come from a database or state management
 const initialWishlistItems = [
   {
@@ -54,11 +57,7 @@ const initialWishlistItems = [
 export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState(initialWishlistItems)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<number | null>(null)
-
-  const removeFromWishlist = (id: number) => {
-    setWishlistItems(wishlistItems.filter((item) => item.id !== id))
-    setShowRemoveConfirm(null)
-  }
+  const router = useRouter();
 
   const moveToCart = (id: number) => {
     // In a real app, you would add the item to the cart here
@@ -67,9 +66,36 @@ export default function WishlistPage() {
     // setWishlistItems(wishlistItems.filter(item => item.id !== id))
   }
 
+    const customerId = "e9346d15-b333-4312-85e5-1d090cc6b564";
+    const removeFromWishList = async (itemId: number) => {
+      await axiosClient
+        .delete("wishlist/wishlistMethods", {
+          data: {
+            productId: itemId,
+            customerId: customerId,
+          },
+        })
+        .then((s) => toastingSuccess(s, router.refresh))
+        .catch((x) => toastingError(x));
+    };
+
   const clearWishlist = () => {
     setWishlistItems([])
   }
+
+   const fetchWishlist = async () => {
+      try {
+        const res = await axiosClient.get("wishlist/wishlistMethods");
+        setWishlistItems(res.data.wishlistItems.map((x)=>x.product));
+      } catch (error) {
+        console.error("Error fetching products", error);
+      }
+    }; 
+
+    useEffect(() => {
+      fetchWishlist()
+    }, [])
+    
 
   return (
     <div className="bg-white">
@@ -117,7 +143,7 @@ export default function WishlistPage() {
             <p className="mt-2 text-sm text-gray-500">Browse our products and add your favorites to your wishlist.</p>
             <div className="mt-6">
               <Link
-                href="/products"
+                href="/shop/products"
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-black"
               >
                 Continue Shopping
@@ -131,17 +157,6 @@ export default function WishlistPage() {
                 key={item.id}
                 className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300"
               >
-                {/* New or Sale badge */}
-                {item.isNew && (
-                  <div className="absolute top-3 left-3 z-10 bg-black text-white text-xs font-bold px-2 py-1 rounded">
-                    NEW
-                  </div>
-                )}
-                {item.onSale && (
-                  <div className="absolute top-3 left-3 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                    SALE
-                  </div>
-                )}
 
                 {/* Remove button */}
                 <button
@@ -208,7 +223,7 @@ export default function WishlistPage() {
                         Cancel
                       </button>
                       <button
-                        onClick={() => removeFromWishlist(item.id)}
+                        onClick={() => removeFromWishList(item.id)}
                         className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
                       >
                         Remove

@@ -24,8 +24,15 @@ export const createCustomerDB = async ( User:{data:customerData,hashedPassword:s
                     password:User.hashedPassword,
                     role:"CUSTOMER",
                 }
+            }),
+        ]).then(async(e)=> {(
+            await prisma.cart.create({
+                data:{
+                    customerId:e[1].id,
+                }
             })
-        ])
+        )});
+
         return {success:true}
     }catch(err){
         return {success:false,error:err}

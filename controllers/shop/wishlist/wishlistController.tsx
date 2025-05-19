@@ -55,7 +55,6 @@ export const deleteWishlist = async (
 
     const scan = await prisma.wishlistItems.findUnique({
       where: {
-        id:data.id,
         customerId: data.customerId,
         productId: data.productId,
       },

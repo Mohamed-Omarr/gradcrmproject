@@ -21,8 +21,8 @@ function Products({ product }: { product: ShopProduct[] }) {
             className="group relative rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-1 max-w-[400px] duration-300"
           >
             {/* Wishlist button */}
-            <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button className="rounded-full bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
+            <div className="absolute  top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button  className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
                 <Heart />
               </button>
             </div>

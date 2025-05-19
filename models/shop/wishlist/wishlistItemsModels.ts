@@ -2,12 +2,22 @@ import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
 export const addingToWishlistItems = async (data:WishlistItems) => {
     try{
-        await prisma.wishlistItems.create({
-            data: {
-                customerId:data.customerId,
-                productId:data.productId,
-            },
-        });
+        await prisma.$transaction([
+            prisma.wishlistItems.create({
+                data: {
+                    customerId:data.customerId,
+                    productId:data.productId,
+                }
+            }),
+            prisma.product.update({
+                where:{
+                    id:data.productId,
+                },
+                data: {
+                    isWishListed:true,
+                }
+            }),
+        ])
         return { success: true };
     }catch(error){
         return { success: false, error: `Failed adding to wishlist ${error}` };
@@ -16,16 +26,25 @@ export const addingToWishlistItems = async (data:WishlistItems) => {
 
 export const deletingWishlistItems = async (data:DeleteWishlistItems) => {
     try{
-        await prisma.wishlistItems.delete({
+        await prisma.$transaction([
+            prisma.wishlistItems.delete({
             where: {
-                id:data.id,
-                customerId:data.customerId,
-                productId:data.productId,
+                customerId: data.customerId,
+                productId: data.productId,
             },
-        });
+        }),
+        prisma.product.update({
+                where:{
+                    id:data.productId,
+                },
+                data: {
+                    isWishListed:false,
+                }
+            }),
+        ])
         return { success: true };
     }catch(error){
-        return { success: false, error: `Failed deleting product from wishlist ${error}` };
+        return { success: false, error: `Failed removing product from wishlist ${error}` };
     }
 }
 

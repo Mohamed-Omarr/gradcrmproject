@@ -26,7 +26,7 @@ type ReviewProduct = {
 };
 
 export default function ProductIdPage({ product }: { product: ShopProduct }) {
-  const customerId = "2bed2fb7-5fcc-4267-87bc-033a91523522";
+  const customerId = "e9346d15-b333-4312-85e5-1d090cc6b564";
 
   const customerCommentExits = product.ratings.find(
     (comment) => comment.customerId === customerId
@@ -416,7 +416,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
               </h2>
               {!customerCommentExits ? (
                 <button
-                disabled={isLoading}
+                  disabled={isLoading}
                   onClick={() => setReviewModalOpen(true)}
                   className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black transition-colors"
                 >
@@ -424,7 +424,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                 </button>
               ) : (
                 <button
-                disabled={isLoading}
+                  disabled={isLoading}
                   onClick={() => (
                     setEditReviewModalOpen(true),
                     setEditingReviewId(customerCommentExits.id)
@@ -445,7 +445,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                   <div className="bg-gray-50 p-6 rounded-lg max-w-md">
                     <div className="flex items-center mb-4">
                       <span className="text-4xl font-bold text-gray-900 mr-2">
-                        {avgRatingScore.toFixed(1)}
+                        {Number.isNaN(avgRatingScore) ? 0 : avgRatingScore.toFixed(1)}
                       </span>
                       <div className="flex flex-col">
                         <div className="flex">

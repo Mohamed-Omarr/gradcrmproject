@@ -13,6 +13,7 @@ export const get_all_product = async () => {
                     thumbnail:true,
                     colors:true,
                     sizes:true,
+                    isWishListed:true,
                     category:{
                         select:{
                             name:true,
@@ -22,10 +23,9 @@ export const get_all_product = async () => {
                     ratings:{
                         select:{
                             score:true,
-                            review:true,
                         }
                     },
-                }
+                },
                 })
                 
         return { success: true, products: allProduct };
@@ -51,6 +51,7 @@ export const get_product_by_id = async (productId:string) => {
                     thumbnail:true,
                     colors:true,
                     sizes:true,
+                    isWishListed:true,
                     category:{
                         select:{
                             name:true,
@@ -96,12 +97,16 @@ export const get_products_by_category = async (categoryId:string) => {
                             name:true,
                             thumbnail:true,
                             price:true,
+                            isWishListed:true,
                             ratings:{
                                 select:{
                                     score:true,
                                 }
-                            }
-                        }
+                            },
+                            
+                        },
+                        
+                        
                     }
                 }
                 })

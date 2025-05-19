@@ -32,7 +32,6 @@ axiosClient.interceptors.request.use(
         if (!AccessToken) return config;
 
           const decoded = jwtDecode<{exp?:number}>(AccessToken);
-          console.log(decoded.exp );
           
           const isExpired= decoded.exp ? decoded.exp * 1000 < Date.now():true ;
             
@@ -87,7 +86,7 @@ axiosClient.interceptors.response.use(
     // If token is expired 
     if (err.response?.status === 401) {
       localStorage.removeItem("AccessToken");
-      frequentExit();
+      await frequentExit();
     }
   
     return Promise.reject(err);
