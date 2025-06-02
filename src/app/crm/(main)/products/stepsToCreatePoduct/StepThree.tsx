@@ -1,13 +1,24 @@
+import { useGetSizeQuery } from "@/app/crm/redux/services/sizeApi";
+import Loader from "@/app/Loader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { TabsContent } from "@/components/ui/tabs";
-import { useSizes } from "@/hooks/crm/share-sizes-context";
 import React, { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
 function StepThree() {
-  const allSizes = useSizes(); // array of { id, name, code }
+  const {
+    data: allSizes,
+    isSuccess: isSuccessSize,
+    isLoading: isLoadingSize,
+    isError: isSizeError,
+  } = useGetSizeQuery();
+
+  if (isSizeError) {
+    throw new Error("Failed Getting Sizes");
+  }
+  
   const {
     setValue,
     trigger,
@@ -32,7 +43,7 @@ function StepThree() {
     const current = getValues("sizes") || [];
     const updated = checked
       ? [...current, id]
-      : current.filter((itemId) => itemId !== id);
+      : current.filter((itemId: number) => itemId !== id);
 
     setValue("sizes", updated);
     trigger("sizes");
@@ -49,8 +60,10 @@ function StepThree() {
         </div>
         <Separator />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {allSizes && allSizes.length > 0 ? (
-            allSizes.map((item) => (
+          {isLoadingSize ? (
+            <Loader />
+          ) : isSuccessSize && allSizes.sizes.length > 0 ? (
+            allSizes.sizes.map((item) => (
               <div key={item.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`size-${item.id}`}
@@ -74,7 +87,9 @@ function StepThree() {
           )}
         </div>
       </div>
-      {errors.sizes && typeof errors.sizes.message === "string" && <p className="text-red-500">{errors.sizes.message}</p>}
+      {errors.sizes && typeof errors.sizes.message === "string" && (
+        <p className="text-red-500">{errors.sizes.message}</p>
+      )}
     </TabsContent>
   );
 }

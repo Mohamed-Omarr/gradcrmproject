@@ -1,7 +1,7 @@
 
 import axios from "axios";
 import { jwtDecode } from 'jwt-decode';
-import { frequentExit } from "../../../_lib_backend/token/frequentExit";
+import { shopFrequentExit } from "../../../_lib_backend/token/shopFrequentExit";
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:3000/api/shop/",
@@ -54,7 +54,7 @@ axiosClient.interceptors.request.use(
                   onRefreshed(data.AccessToken)
                   console.log("done refresh token")
                 }catch(err){
-                  frequentExit();
+                  shopFrequentExit();
                   throw err;
                 }finally{
                   isRefresh = false;
@@ -67,7 +67,7 @@ axiosClient.interceptors.request.use(
           config.headers.Authorization = `Bearer ${AccessToken}`;
       } catch (err) {
         console.log("vialed access Token error- must log out the user right now:", err);
-        frequentExit();
+        shopFrequentExit();
         return Promise.reject(err);
       }
 
@@ -86,7 +86,7 @@ axiosClient.interceptors.response.use(
     // If token is expired 
     if (err.response?.status === 401) {
       localStorage.removeItem("AccessToken");
-      await frequentExit();
+      await shopFrequentExit();
     }
   
     return Promise.reject(err);

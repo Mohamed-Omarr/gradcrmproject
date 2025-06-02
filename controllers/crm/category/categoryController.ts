@@ -7,6 +7,7 @@ import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/z
 
 export const createCategory = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
+        
             const data:Category = zodValidatorHelper(validationCreateCategory,req.body,res);
 
             const itemOwner = await prisma.admin.findUnique({where:{id:data.ownerId},select:{categories:true}})

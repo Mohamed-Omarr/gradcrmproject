@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronDown,
   Filter,
@@ -8,17 +8,21 @@ import {
   ShoppingCart,
   X,
 } from "lucide-react";
-import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
-import axiosClient from "@/lib/axios/axiosClient";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { useRouter } from "next/navigation";
+import { useGetProductsQuery } from "../redux/services/productApi";
+import Loader from "@/app/Loader";
+import { useGetCategoriesQuery } from "../redux/services/categoryApi";
+import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
+import {
+  useAddToWishlistItemMutation,
+  useDeleteWishlistItemMutation,
+} from "../redux/services/wishlistApi";
 
 export default function AllProductsPage() {
-  const [products, setProducts] = useState<ShopProduct[]>([]);
-  const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [hightPrice, setHightPrice] = useState<number>(0);
   const [lowestPrice, setLowestPrice] = useState<number>(0);
@@ -33,69 +37,64 @@ export default function AllProductsPage() {
   const [sortStatus, setSortStatus] = useState<string>("featured");
   const router = useRouter();
 
-  const fetchProducts = async () => {
-    try {
-      const res = await axios.get("/api/shop/product/allProducts");
-      setProducts(res.data.products);
+  const {
+    data: products,
+    isLoading: isProductLoading,
+    isSuccess: isProductSuccess,
+    isError: isProductError,
+  } = useGetProductsQuery();
 
-      const prices = res.data.products.map((p: ShopProduct) => p.price);
-
-      setHightPrice(Math.max(...prices));
-      setLowestPrice(Math.min(...prices));
-
-      // setFilter((prev) => ({
-      //   ...prev,
-      //   priceRange: [Math.min(...prices), Math.max(...prices)],
-      // }));
-    } catch (error) {
-      console.error("Error fetching products", error);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("/api/shop/category/categoryMethods");
-      setCategories(res.data.categories);
-    } catch (error) {
-      console.error("Error fetching products", error);
-    }
-  };
+  const {
+    data: categories,
+    isLoading: isCategoryLoading,
+    isSuccess: isCategorySuccess,
+    isError: isCategoryError,
+  } = useGetCategoriesQuery();
 
   // add to wishlist
-  const customerId = "e9346d15-b333-4312-85e5-1d090cc6b564";
+  const customerInfo = useCustomerInfo();
+
+  if (!customerInfo) {
+    throw new Error("Failed getting customer Info");
+  }
+
+  const [removeWishListItem] = useDeleteWishlistItemMutation();
+
+  const [addToWishlistItem] = useAddToWishlistItemMutation();
 
   const addingToWishlist = async (itemId: number) => {
-    await axiosClient
-      .post("wishlist/wishlistMethods", {
-        productId: itemId,
-        customerId: customerId,
-      })
-      .then((s) => toastingSuccess(s, router.refresh))
-      .catch((x) => toastingError(x));
+    const item = {
+      productId: itemId,
+      customerId: customerInfo.id,
+    };
+    
+    const res = await addToWishlistItem(item);
+
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
   };
 
   const removeFromWishList = async (itemId: number) => {
-    await axiosClient
-      .delete("wishlist/wishlistMethods", {
-        data: {
-          productId: itemId,
-          customerId: customerId,
-        },
-      })
-      .then((s) => toastingSuccess(s, router.refresh))
-      .catch((x) => toastingError(x));
+    const item = {
+      productId: itemId,
+      customerId: customerInfo.id,
+    };
+    const res = await removeWishListItem(item);
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
   };
-
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
 
   // handling filter product
   const filteredProducts = useMemo(() => {
-    if (!products || products.length === 0) return [];
+    if (!products || products.products.length === 0) return [];
 
-    let result = products;
+    let result = [...products.products];
 
     if (filter.categories && filter.categories.length > 0) {
       result = result.filter((product) =>
@@ -142,6 +141,31 @@ export default function AllProductsPage() {
 
     return result;
   }, [filter, products, searchQuery, sortStatus]);
+
+  useEffect(() => {
+    if (isProductSuccess && products.products.length > 0) {
+      const prices = products.products.map((p: ShopProduct) => p.price);
+      const maxPrice = Math.max(...prices);
+      const minPrice = Math.min(...prices);
+
+      setHightPrice(maxPrice);
+      setLowestPrice(minPrice);
+
+      // If you want to update filter as well
+      // setFilter((prev) => ({
+      //   ...prev,
+      //   priceRange: [minPrice, maxPrice],
+      // }));
+    }
+  }, [isProductSuccess, products]);
+
+  if (isProductError) {
+    return <p>Failed to fetch products</p>;
+  }
+
+  if (isCategoryError) {
+    return <p>Error fetching categories</p>;
+  }
 
   const handleCategoryChange = (categoryName: string) => {
     const updatedCategory = filter.categories.includes(categoryName);
@@ -242,22 +266,26 @@ export default function AllProductsPage() {
                   Categories
                 </h3>
                 <div className="space-y-2">
-                  {categories.map((category) => (
-                    <div key={category.id} className="flex items-center">
-                      {/* Button instead of checkbox */}
-                      <button
-                        type="button"
-                        onClick={() => handleCategoryChange(category.name)} // Passing category name directly
-                        className={`h-10 px-4 py-2 rounded border text-sm ${
-                          filter.categories.some((x) => x === category.name)
-                            ? "bg-gray-900 text-white"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {category.name}
-                      </button>
-                    </div>
-                  ))}
+                  {isCategoryLoading ? (
+                    <Loader />
+                  ) : (
+                    isCategorySuccess &&
+                    categories.categories.map((category) => (
+                      <div key={category.id} className="flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => handleCategoryChange(category.name)}
+                          className={`h-10 px-4 py-2 rounded border text-sm ${
+                            filter.categories.includes(category.name)
+                              ? "bg-gray-900 text-white"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {category.name}
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -338,7 +366,9 @@ export default function AllProductsPage() {
 
           {/* Product grid */}
           <div className="flex-1">
-            {filteredProducts && filteredProducts.length > 0 ? (
+            {isProductLoading ? (
+              <Loader />
+            ) : filteredProducts && filteredProducts.length > 0 ? (
               filteredProducts.map((item) => {
                 const scores = item.ratings?.map((r) => r.score) || [];
                 const total = scores.reduce((acc, score) => acc + score, 0);

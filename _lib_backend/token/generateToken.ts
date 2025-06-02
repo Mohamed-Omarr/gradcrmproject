@@ -6,8 +6,6 @@ import prisma from "../prismaClient/PrismaClient";
 type userData = {
     id: string;
     role: string;
-    name:string,
-    email:string,
 }
 
 export const generateToken = async (user:userData,res:NextApiResponse) => {
@@ -24,9 +22,7 @@ export const generateToken = async (user:userData,res:NextApiResponse) => {
 
         const payload = {
             id: user.id,
-            name:user.name,
-            role:user.role,
-            email:user.email,
+            role:  user.role
         };
 
         const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "15m" });

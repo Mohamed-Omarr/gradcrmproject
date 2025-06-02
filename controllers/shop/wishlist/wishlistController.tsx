@@ -11,6 +11,7 @@ export const addToWishlistItems = async (
   res: NextApiResponse
 ) => {
   try {
+
     const data: WishlistItems = zodValidatorHelper(
       validationAddToWishlist,
       req.body,

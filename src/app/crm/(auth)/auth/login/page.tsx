@@ -47,7 +47,7 @@ export default function LoginPage() {
     try {
       const res = await axios.post("/api/crm/auth/login", data);
       localStorage.setItem("access_token", res.data.accessToken);
-      toastingSuccess(res, () => redirect("/crm/dashboard"));
+      toastingSuccess(res.data.message, () => redirect("/crm/dashboard"));
     } catch (error) {
       toastingError(error);
     } finally {

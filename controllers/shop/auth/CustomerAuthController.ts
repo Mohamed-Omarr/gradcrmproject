@@ -62,9 +62,7 @@ export const customer_login = async (req:NextApiRequest,res:NextApiResponse) => 
 
             const limitAccess = {
                 id:user.id,
-                email:user.email,
                 role:user.role,
-                name:user.name,
             }
             //  await prisma model
             const pushingDB = await customerLoginDB(limitAccess.id,limitAccess.role);

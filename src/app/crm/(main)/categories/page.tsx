@@ -14,111 +14,101 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import axiosAdmin from "@/lib/axios/axiosAdmin";
+import { useMemo, useState } from "react";
 import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
+import {
+  useCreateCategoryMutation,
+  useGetCategoriesQuery,
+  useDeleteCategoryMutation,
+  useUpdateCategoryMutation,
+} from "../../redux/services/categoryApi";
+import Loader from "@/app/Loader";
 
 export default function Categories() {
   const [getName, setGetName] = useState<string>("");
   const [getDesc, setGetDesc] = useState<string>("");
   const [openPopUp, setOpenPopUp] = useState<boolean>(false);
-  const [categoryData, setCategories] = useState<Category[] | []>([]);
   const [update, setUpdate] = useState<boolean>(false);
-  const [updateFollowingId, setUpdateFollowingId] = useState<number | undefined>(undefined);
+  const [updateFollowingId, setUpdateFollowingId] = useState<
+    number | undefined
+  >(undefined);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const admin_info = useAdminInfo();
 
-  const get_category_data = async () => {
-    try {
-      const res = await axiosAdmin.get("category/categoryMethods");
-      setCategories(res.data.categories);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
+  // get data through rtq
+  const { data, isLoading, isSuccess } = useGetCategoriesQuery();
+
+  const [createCategory] = useCreateCategoryMutation();
+  const [deleteCategory] = useDeleteCategoryMutation();
+  const [updateCategory] = useUpdateCategoryMutation();
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
-    try {
-      const res = await axiosAdmin.post("category/categoryMethods", {
-        name: getName,
-        description: getDesc,
-        ownerId: admin_info?.id,
-      });
-      // setCategories((prev) => [...prev, res.data.createdCategory]);
-      if (categoryData && categoryData.length === 0) {
-        setCategories((prev) => [...prev, res.data.createdCategory]);
-      } else if (categoryData && categoryData.length > 0) {
-        setCategories((prev) => [...prev, res.data.createdCategory]);
-      } else {
-        setCategories(res.data.createdCategory);
-        window.location.reload();
-      }
-      toastingSuccess(res);
+    const itemData = {
+      name: getName,
+      description: getDesc,
+      ownerId: admin_info?.id,
+    };
+    const res = await createCategory(itemData);
+    if (res.data) {
+      toastingSuccess(res.data.message);
       setOpenPopUp(false);
       setGetName("");
       setGetDesc("");
-    } catch (err) {
-      toastingError(err);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const onDelete = async (itemId: number) => {
-    try {
-      const res = await axiosAdmin.delete("category/categoryMethods", {
-        data: {
-          id: itemId,
-          ownerId: admin_info?.id,
-        },
-      });
-      setCategories((prev) => prev.filter((product) => product.id !== itemId));
-      toastingSuccess(res);
-    } catch (err) {
-      toastingError(err);
+    const itemData = {
+      id: itemId,
+      ownerId: admin_info?.id,
+    };
+    const res = await deleteCategory(itemData);
+    if (res.data) {
+      toastingSuccess(res.data?.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const onUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
-    try {
-      const res = await axiosAdmin.patch("category/categoryMethods", {
-        id: updateFollowingId,
-        ownerId: admin_info?.id,
-        name: getName,
-        description: getDesc,
-      });
-      setCategories((prev) =>
-        prev.map((product) =>
-          product.id === updateFollowingId
-            ? { ...product, name: getName, description: getDesc }
-            : product
-        )
-      );
+
+    const itemData = {
+      id: updateFollowingId,
+      ownerId: admin_info?.id,
+      name: getName,
+      description: getDesc,
+    };
+    const res = await updateCategory(itemData);
+
+    if (res.data) {
+      setOpenPopUp(false);
+      setUpdate(false);
       setUpdateFollowingId(undefined);
       setGetName("");
       setGetDesc("");
-      toastingSuccess(res);
-      setOpenPopUp(false);
-      setUpdate(false);
-    } catch (err) {
-      toastingError(err);
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
-  const filteredCategories =
-    categoryData && categoryData.length > 0
-      ? categoryData.filter(
-          (category) =>
-            category.name.toLowerCase().includes(searchTerm) ||
-            category.description?.toLowerCase().includes(searchTerm)
-        )
-      : categoryData;
+  const filteredCategories = useMemo(() => {
+    if (!isSuccess || !data.categories) return [];
 
-  useEffect(() => {
-    get_category_data();
-  }, []);
+    const term = searchTerm.toLowerCase();
+
+    return data.categories.filter(
+      (category) =>
+        category.name.toLowerCase().includes(term) ||
+        category.description?.toLowerCase().includes(term)
+    );
+  }, [isSuccess, data, searchTerm]);
 
   return (
     <div className="h-full space-y-6">
@@ -214,8 +204,9 @@ export default function Categories() {
             </div>
 
             <div className="divide-y max-h-[400px] overflow-y-scroll">
-              {filteredCategories &&
-                filteredCategories.length > 0 &&
+              {isLoading ? (
+                <Loader />
+              ) : (
                 filteredCategories.map((category) => (
                   <div
                     key={category.id}
@@ -249,7 +240,8 @@ export default function Categories() {
                       </button>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
             </div>
           </div>
         </CardContent>

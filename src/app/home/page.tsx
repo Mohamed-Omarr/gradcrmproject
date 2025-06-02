@@ -1,6 +1,6 @@
+import CategorySection from "../ShopComponents/Categories";
 import Hero from "../ShopComponents/Hero";
 import FeatureSection from "../ShopComponents/ProductFeatures";
-import ShopByCategories from "../ShopComponents/ShopByCategories";
 
 export default function Home() {
   return (
@@ -17,7 +17,7 @@ export default function Home() {
               Shop by Categories
             </h2>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-              <ShopByCategories />
+              <CategorySection />
             </div>
           </div>
         </section>

@@ -201,23 +201,23 @@ model Cart {
 model CartItem {
   id        Int     @id @default(autoincrement())
   product   Product @relation(fields: [productId], references: [id])
-  productId Int
+  productId Int     @unique
   cart      Cart    @relation(fields: [cartId], references: [id])
   cartId    Int
   quantity  Int
-  sku       String
+  // sku       String
   total     Float
 }
 
 // Address of customer
 model Address {
-  id            Int       @id @default(autoincrement())
-  addressType   String
-  street String
-  city          String
-  zipCode       Int
-  country       String
-  default Boolean @default(false)
-  customer      Customer @relation(fields: [customerId], references: [id])
-  customerId    String
+  id          Int      @id @default(autoincrement())
+  addressType String
+  street      String
+  city        String
+  zipCode     Int
+  country     String
+  default     Boolean  @default(false)
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  String
 }

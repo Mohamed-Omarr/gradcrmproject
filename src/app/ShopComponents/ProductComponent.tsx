@@ -19,6 +19,9 @@ import axiosClient from "@/lib/axios/axiosClient";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import Loader from "../Loader";
 import { useRouter } from "next/navigation";
+import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
+import { useAddToCartItemsMutation } from "../shop/redux/services/cartApi";
+import { useAddToWishlistItemMutation, useDeleteWishlistItemMutation } from "../shop/redux/services/wishlistApi";
 
 type ReviewProduct = {
   score: number;
@@ -26,10 +29,16 @@ type ReviewProduct = {
 };
 
 export default function ProductIdPage({ product }: { product: ShopProduct }) {
-  const customerId = "e9346d15-b333-4312-85e5-1d090cc6b564";
+  const customerInfo = useCustomerInfo();
+
+  if (!customerInfo) {
+    throw new Error("Failed getting customer Info");
+  }
+
+  const [addToCart] = useAddToCartItemsMutation();
 
   const customerCommentExits = product.ratings.find(
-    (comment) => comment.customerId === customerId
+    (comment) => comment.customerId === customerInfo.id
   );
 
   const [mainImage, setMainImage] = useState<string>(product.thumbnail);
@@ -85,6 +94,9 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     customerCommentExits?.score === editingReview.score &&
     customerCommentExits?.review === editingReview.review;
 
+  const [addToWishlistItem] = useAddToWishlistItemMutation();
+  const [removeWishListItem] = useDeleteWishlistItemMutation();
+
   // values of star rating
   const stars = product.ratings.reduce((acc, curr) => acc + curr.score, 0);
   const comments = product.ratings;
@@ -104,7 +116,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     setIsLoading(true);
     try {
       const creating = await axiosClient.post("product/rateProductMethods", {
-        customerId: customerId,
+        customerId: customerInfo.id,
         productId: product.id,
         score: newReview.score,
         review: newReview.review,
@@ -125,7 +137,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     try {
       const updating = await axiosClient.patch("product/rateProductMethods", {
         id: editingReviewId,
-        customerId: customerId,
+        customerId: customerInfo.id,
         productId: product.id,
         score: editingReview.score,
         review: editingReview.review,
@@ -146,7 +158,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
       const deleting = await axiosClient.delete("product/rateProductMethods", {
         data: {
           id: deleteReviewId,
-          customerId: customerId,
+          customerId: customerInfo.id,
           productId: product.id,
         },
       });
@@ -160,9 +172,53 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     }
   };
 
+  const addingToCart = async (item: ShopProduct) => {
+    const product = {
+      productId: item.id,
+      quantity: quantity.current,
+      total: item.price * quantity.current,
+    };
+
+    const res = await addToCart(product);
+
+    if (res.data) {
+      console.log("yes");
+    } else {
+      console.log("no");
+    }
+  };
+
+  const addingToWishlist = async (itemId: number) => {
+    const item = {
+      productId: itemId,
+      customerId: customerInfo.id,
+    };
+
+    const res = await addToWishlistItem(item);
+
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
+  };
+
+  const removeFromWishList = async (itemId: number) => {
+      const item = {
+        productId: itemId,
+        customerId: customerInfo.id,
+      };
+      const res = await removeWishListItem(item);
+      if (res.data) {
+        toastingSuccess(res.data.message, router.refresh);
+      } else {
+        toastingError(res.error);
+      }
+    };
+
   // helper functions
   const handleEditReview = (selectedReview: Rate) => {
-    if (selectedReview.customerId !== customerId) return;
+    if (selectedReview.customerId !== customerInfo.id) return;
     setEditingReview({
       score: selectedReview.score,
       review: selectedReview.review,
@@ -388,13 +444,22 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
 
                 {/* Add to cart and wishlist */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-6">
-                  <button className="flex-1 bg-gray-900 text-white py-3 px-4 rounded-md font-medium hover:bg-black flex items-center justify-center">
+                  <button
+                    onClick={() => addingToCart(product)}
+                    className="flex-1 bg-gray-900 text-white py-3 px-4 rounded-md font-medium hover:bg-black flex items-center justify-center"
+                  >
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     Add to Cart
                   </button>
-                  <button className="flex-1 border border-gray-300 text-gray-900 py-3 px-4 rounded-md font-medium hover:bg-gray-50 flex items-center justify-center">
-                    <Heart className="h-5 w-5 mr-2" />
-                    Add to Wishlist
+                  <button
+                    onClick={() =>
+                      product.isWishListed
+                        ? removeFromWishList(product.id)
+                        : addingToWishlist(product.id)
+                    }
+                    className="flex-1 border border-gray-300 text-gray-900 py-3 px-4 rounded-md font-medium hover:bg-gray-50 flex items-center justify-center"
+                  >
+                    <Heart fill={product.isWishListed ? "red" : "white"} className="h-5 w-5 mr-2" />
                   </button>
                 </div>
 
@@ -445,7 +510,9 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                   <div className="bg-gray-50 p-6 rounded-lg max-w-md">
                     <div className="flex items-center mb-4">
                       <span className="text-4xl font-bold text-gray-900 mr-2">
-                        {Number.isNaN(avgRatingScore) ? 0 : avgRatingScore.toFixed(1)}
+                        {Number.isNaN(avgRatingScore)
+                          ? 0
+                          : avgRatingScore.toFixed(1)}
                       </span>
                       <div className="flex flex-col">
                         <div className="flex">
@@ -505,7 +572,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                     .slice(moreComments.initial, moreComments.more)
                     .map((reviews, i) => (
                       <div key={i} className="border-b border-gray-200 pb-6">
-                        {customerId === reviews.customerId &&
+                        {customerInfo.id === reviews.customerId &&
                         editingReviewId === reviews.id &&
                         isEditingInCommentSection ? (
                           // Edit review form
@@ -617,7 +684,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                                 </span>
                               </div>
 
-                              {customerId === reviews.customerId && (
+                              {customerInfo.id === reviews.customerId && (
                                 <div className="flex space-x-2">
                                   <button
                                     onClick={() => handleEditReview(reviews)}

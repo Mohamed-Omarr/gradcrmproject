@@ -1,43 +1,53 @@
+import { useGetColorQuery } from "@/app/crm/redux/services/colorApi";
+import Loader from "@/app/Loader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { TabsContent } from "@/components/ui/tabs";
-import { useColors } from "@/hooks/crm/share-colors-context";
 import React, { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
 function StepTwo() {
-  const allColors = useColors();
   const {
-      setValue,
-      trigger,
-      getValues,
-      watch,
-      formState: { errors },
-    } = useFormContext();
-  
-    // Watch RHF field directly and treat as single source of truth
-    const watchedColors = watch("colors") || [];
-  
-    // Ensure RHF has an initial value on first mount
-    useEffect(() => {
-      const current = getValues("colors");
-      if (!current || !Array.isArray(current)) {
-        setValue("colors", []);
-      }
-    }, []);
-  
-    // Manually update `colors` field when checkbox toggles
-    const handleToggle = (id: number, checked: boolean) => {
-      const current = getValues("colors") || [];
-      const updated = checked
-        ? [...current, id]
-        : current.filter((itemId) => itemId !== id);
-  
-      setValue("colors", updated);
-      trigger("colors");
-    };
-  
+    data: allColors,
+    isSuccess: isSuccessColor,
+    isLoading: isLoadingColor,
+    isError: isColorError,
+  } = useGetColorQuery();
+
+    if (isColorError) {
+    throw new Error("Failed Getting Colors");
+  }
+
+  const {
+    setValue,
+    trigger,
+    getValues,
+    watch,
+    formState: { errors },
+  } = useFormContext();
+
+  // Watch RHF field directly and treat as single source of truth
+  const watchedColors = watch("colors") || [];
+
+  // Ensure RHF has an initial value on first mount
+  useEffect(() => {
+    const current = getValues("colors");
+    if (!current || !Array.isArray(current)) {
+      setValue("colors", []);
+    }
+  }, []);
+
+  // Manually update `colors` field when checkbox toggles
+  const handleToggle = (id: number, checked: boolean) => {
+    const current = getValues("colors") || [];
+    const updated = checked
+      ? [...current, id]
+      : current.filter((itemId:number) => itemId !== id);
+
+    setValue("colors", updated);
+    trigger("colors");
+  };
 
   return (
     <TabsContent value="colors" className="py-4">
@@ -50,14 +60,16 @@ function StepTwo() {
         </div>
         <Separator />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {allColors && allColors.length > 0 ? (
-            allColors.map((item) => (
+          {isLoadingColor ? (
+            <Loader />
+          ) : isSuccessColor && allColors.colors.length > 0 ? (
+            allColors.colors.map((item:Colors) => (
               <div key={item.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`color-${item.id}`}
                   checked={watchedColors.includes(item.id)}
                   onCheckedChange={(checked) => {
-                    handleToggle(item.id, checked === true)
+                    handleToggle(item.id, checked === true);
                   }}
                 />
                 <div

@@ -1,6 +1,15 @@
 "use client";
 
-import { Palette, Ruler, Plus, Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
+import {
+  Palette,
+  Ruler,
+  Plus,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  Loader2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,16 +31,58 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
-import { useColors } from "@/hooks/crm/share-colors-context";
 import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
-import axiosAdmin from "@/lib/axios/axiosAdmin";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
-import { useSizes } from "@/hooks/crm/share-sizes-context";
+import {
+  useCreateSizeMutation,
+  useDeleteSizeMutation,
+  useGetSizeQuery,
+  useUpdateSizeMutation,
+} from "@/app/crm/redux/services/sizeApi";
+import {
+  useCreateColorMutation,
+  useDeleteColorMutation,
+  useGetColorQuery,
+  useUpdateColorMutation,
+} from "@/app/crm/redux/services/colorApi";
+import Loader from "@/app/Loader";
 
 export default function AttributesPage() {
-  const allColors = useColors();
-  const allSizes = useSizes();
+  const {
+    data: allSizes,
+    isSuccess: isSuccessSize,
+    isLoading: isLoadingSize,
+    isError: isSizeError,
+  } = useGetSizeQuery();
+
+  const {
+    data: allColors,
+    isSuccess: isSuccessColor,
+    isLoading: isLoadingColor,
+    isError: isColorError,
+  } = useGetColorQuery();
+
+  if (isSizeError) {
+    throw new Error("Failed Getting Sizes");
+  }
+
+  if (isColorError) {
+    throw new Error("Failed Getting Colors");
+  }
+
+  const [createSizes, { isLoading: isLoadingCreatingSize }] =
+    useCreateSizeMutation();
+  const [deleteSizes] = useDeleteSizeMutation();
+  const [updateSizes, { isLoading: isLoadingUpdateSize }] =
+    useUpdateSizeMutation();
+
+  const [createColors, { isLoading: isLoadingCreatingColor }] =
+    useCreateColorMutation();
+  const [deleteColors] = useDeleteColorMutation();
+  const [updateColors, { isLoading: isLoadingUpdateColor }] =
+    useUpdateColorMutation();
+
   const admin_info = useAdminInfo();
   const [activeTab, setActiveTab] = useState<string>("Colors");
   // color section
@@ -44,7 +95,6 @@ export default function AttributesPage() {
   const [isEditingSize, setIsEditingSize] = useState<boolean>(false);
   const [sizeName, setSizeName] = useState<string>("");
   const [sizeCode, setSizeCode] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [sizeId, setSizeId] = useState<number | undefined>(undefined);
 
   if (!admin_info) {
@@ -53,45 +103,48 @@ export default function AttributesPage() {
 
   // color section
   const createColor = async () => {
-    try {
-      const res = await axiosAdmin.post("product/attributes/colorsMethods", {
-        name: colorName,
-        code: colorCode,
-        ownerId: admin_info.id,
-      });
+    const item = {
+      name: colorName,
+      code: colorCode,
+      ownerId: admin_info.id,
+    };
+    const res = await createColors(item);
+console.log(res.error);
+
+    if (res.data) {
       colorReset();
-      toastingSuccess(res);
-    } catch (error) {
-      toastingError(error);
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const updateColor = async () => {
-    try {
-      const res = await axiosAdmin.patch("product/attributes/colorsMethods", {
-        id: colorId,
-        name: colorName,
-        code: colorCode,
-        ownerId: admin_info.id,
-      });
+    const item = {
+      id: colorId,
+      name: colorName,
+      code: colorCode,
+      ownerId: admin_info.id,
+    };
+    const res = await updateColors(item);
+    if (res.data) {
       colorReset();
-      toastingSuccess(res);
-    } catch (error) {
-      toastingError(error);
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const deleteColor = async (itemId: number) => {
-    try {
-      const res = await axiosAdmin.delete("product/attributes/colorsMethods", {
-        data: {
-          id: itemId,
-          ownerId: admin_info.id,
-        },
-      });
-      toastingSuccess(res);
-    } catch (error) {
-      toastingError(error);
+    const item = {
+      id: itemId,
+      ownerId: admin_info.id,
+    };
+    const res = await deleteColors(item);
+    if (res.data) {
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
@@ -113,48 +166,46 @@ export default function AttributesPage() {
 
   // size section
   const createSize = async () => {
-    setIsLoading(true)
-    try {
-      const res = await axiosAdmin.post("product/attributes/sizesMethods", {
-        name: sizeName,
-        code: sizeCode,
-        ownerId: admin_info.id,
-      });
+    const item = {
+      name: sizeName,
+      code: sizeCode,
+      ownerId: admin_info.id,
+    };
+    const res = await createSizes(item);
+    if (res.data) {
       sizeReset();
-      toastingSuccess(res);
-    } catch (error) {
-      toastingError(error);
-    }finally{
-      setIsLoading(false)
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const updateSize = async () => {
-    try {
-      const res = await axiosAdmin.patch("product/attributes/sizesMethods", {
-        id: sizeId,
-        name: sizeName,
-        code: sizeCode,
-        ownerId: admin_info.id,
-      });
+    const item = {
+      id: sizeId,
+      name: sizeName,
+      code: sizeCode,
+      ownerId: admin_info.id,
+    };
+    const res = await updateSizes(item);
+    if (res.data) {
       sizeReset();
-      toastingSuccess(res);
-    } catch (error) {
-      toastingError(error);
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const deleteSize = async (itemId: number) => {
-    try {
-      const res = await axiosAdmin.delete("product/attributes/sizesMethods", {
-        data: {
-          id: itemId,
-          ownerId: admin_info.id,
-        },
-      });
-      toastingSuccess(res);
-    } catch (error) {
-      toastingError(error);
+    const item = {
+      id: itemId,
+      ownerId: admin_info.id,
+    };
+    const res = await deleteSizes(item);
+    if (res.data) {
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
@@ -246,14 +297,28 @@ export default function AttributesPage() {
                 </div>
                 <div className="flex items-end gap-2">
                   {!isEditingColor ? (
-                    <Button onClick={() => createColor()}>
-                      <Plus className="mr-2 h-4 w-4" />
+                    <Button
+                      disabled={isLoadingCreatingColor}
+                      onClick={() => createColor()}
+                    >
+                      {isLoadingCreatingColor ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="mr-2 h-4 w-4" />
+                      )}
                       Add Color
                     </Button>
                   ) : (
                     <div>
-                      <Button onClick={() => updateColor()}>
-                        <Check className="mr-2 h-4 w-4" />
+                      <Button
+                        disabled={isLoadingUpdateColor}
+                        onClick={() => updateColor()}
+                      >
+                        {isLoadingUpdateColor ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
                         Update Color
                       </Button>
 
@@ -276,50 +341,55 @@ export default function AttributesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Color</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>HEX Code</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allColors.map((color, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>
-                        <div
-                          className="w-8 h-8 rounded border"
-                          style={{ background: color.code || "#ffff" }}
-                        ></div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {color.name}
-                      </TableCell>
-                      <TableCell>{color.code}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            onClick={() => activeToUpdateColor(color)}
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            onClick={() => deleteColor(color.id)}
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {isLoadingColor ? (
+                <Loader />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Color</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>HEX Code</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {isSuccessColor &&
+                      allColors.colors.map((color, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell>
+                            <div
+                              className="w-8 h-8 rounded border"
+                              style={{ background: color.code || "#ffff" }}
+                            ></div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {color.name}
+                          </TableCell>
+                          <TableCell>{color.code}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                onClick={() => activeToUpdateColor(color)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => deleteColor(color.id)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -337,25 +407,46 @@ export default function AttributesPage() {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="space-y-2 flex-1">
                   <Label htmlFor="size-name">Size Name</Label>
-                  <Input id="size-name" placeholder="e.g. Extra Large" value={sizeName} onChange={(e)=>setSizeName(e.target.value)} />
+                  <Input
+                    id="size-name"
+                    placeholder="e.g. Extra Large"
+                    value={sizeName}
+                    onChange={(e) => setSizeName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2 flex-1">
                   <Label htmlFor="size-code">Size Code</Label>
-                  <Input id="size-code" placeholder="e.g. XL" value={sizeCode} onChange={(e)=>setSizeCode(e.target.value)} />
+                  <Input
+                    id="size-code"
+                    placeholder="e.g. XL"
+                    value={sizeCode}
+                    onChange={(e) => setSizeCode(e.target.value)}
+                  />
                 </div>
                 <div className="flex items-end gap-2">
                   {!isEditingSize ? (
-                    <Button disabled={isLoading} onClick={() => createSize()}>
-                      {
-                        isLoading === true?(<Loader2 className="mr-2 h-4 w-4 animate-spin" />):(<Plus className="mr-2 h-4 w-4" />)
-                      }
-                      
+                    <Button
+                      disabled={isLoadingCreatingSize}
+                      onClick={() => createSize()}
+                    >
+                      {isLoadingCreatingSize ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="mr-2 h-4 w-4" />
+                      )}
                       Add Size
                     </Button>
                   ) : (
                     <div>
-                      <Button onClick={() => updateSize()}>
-                        <Check className="mr-2 h-4 w-4" />
+                      <Button
+                        disabled={isLoadingUpdateSize}
+                        onClick={() => updateSize()}
+                      >
+                        {isLoadingUpdateSize ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
                         Update Size
                       </Button>
 
@@ -378,41 +469,48 @@ export default function AttributesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allSizes.map((size, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{size.code}</TableCell>
-                      <TableCell className="font-medium">{size.name}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            onClick={() => activeToUpdateSize(size)}
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            onClick={() => deleteSize(size.id)}
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {isLoadingSize ? (
+                <Loader />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {isSuccessSize &&
+                      allSizes.sizes.map((size, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell>{size.code}</TableCell>
+                          <TableCell className="font-medium">
+                            {size.name}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                onClick={() => activeToUpdateSize(size)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => deleteSize(size.id)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -10,10 +10,7 @@ import { limitedAdminInfo } from "@/CrmGlobalData/shartLimitedAdminInfo";
 import "../../globals.css";
 import { Suspense } from "react";
 import Loader from "@/app/Loader";
-import { attributesColors } from "@/CrmGlobalData/shareAttributesColors";
-import { ColorsProvider } from "@/hooks/crm/share-colors-context";
-import { attributesSizes } from "@/CrmGlobalData/shareAttributesSizes";
-import { SizesProvider } from "@/hooks/crm/share-sizes-context";
+import Providers from "../redux/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,8 +32,6 @@ export default async function CrmLayout({
   children: React.ReactNode;
 }) {
   const adminInfo = await limitedAdminInfo();
-  const colors = await attributesColors();
-  const sizes = await attributesSizes();
 
   return (
     <html lang="en">
@@ -44,22 +39,20 @@ export default async function CrmLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased  py-5`}
       >
         <AdminInfoProvider initialAdminInfo={adminInfo}>
-          <ColorsProvider initialColors={colors}>
-            <SizesProvider initialSizes={sizes}>
               <SidebarProvider defaultOpen={true}>
                 <Suspense fallback={<Loader />}>
                   <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr]">
                     <AppSidebar />
                     <div className="flex flex-col">
-                      <Header />
-                      <main className="flex-1 p-4 md:p-6">{children}</main>
+                      <Providers>
+                        <Header />
+                        <main className="flex-1 p-4 md:p-6">{children}</main>
+                      </Providers>
                     </div>
                   </div>
                 </Suspense>
               </SidebarProvider>
-              <ToastContainer  />
-            </SizesProvider>
-          </ColorsProvider>
+              <ToastContainer />
         </AdminInfoProvider>
       </body>
     </html>

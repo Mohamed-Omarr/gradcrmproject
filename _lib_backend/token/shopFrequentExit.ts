@@ -1,12 +1,12 @@
 "use server"
 import { cookies } from "next/headers"
-export const frequentExit = async () => {
+export const shopFrequentExit = async () => {
     try {
         const cookieStore = cookies();
-        const token =  (await cookieStore).get("crm_token");
+        const token = (await cookieStore).get("shop_token");
 
         if (token) {
-            (await cookieStore).delete("crm_token");
+            (await cookieStore).delete("shop_token");
             return token;
         }
 

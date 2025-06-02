@@ -6,8 +6,21 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import CarImage from "../../../../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg";
+import { useGetCategoriesQuery } from "@/app/crm/redux/services/categoryApi";
+import Loader from "@/app/Loader";
 
-function StepOne({ cate }: { cate: Category[] }) {
+function StepOne() {
+  const {
+    data: cate,
+    isSuccess: isSuccessCategory,
+    isLoading: isLoadingCategory,
+    isError: isCategoryError,
+  } = useGetCategoriesQuery();
+
+  if (isCategoryError) {
+    throw new Error("Failed Getting Categories");
+  }
+
   const [MainImage, setMainImage] = useState<string | null>(null);
 
   const {
@@ -75,7 +88,9 @@ function StepOne({ cate }: { cate: Category[] }) {
           <p> {errors.quantity.message} </p>
         )}
 
-        {cate && cate.length > 0 ? (
+        {isLoadingCategory ? (
+          <Loader />
+        ) : isSuccessCategory && cate.categories.length > 0 ? (
           <div className="grid gap-2">
             <Label htmlFor="categoryId">Category</Label>
             <select
@@ -88,7 +103,7 @@ function StepOne({ cate }: { cate: Category[] }) {
               <option value="" disabled>
                 Select Category
               </option>
-              {cate.map((category) => (
+              {cate.categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>

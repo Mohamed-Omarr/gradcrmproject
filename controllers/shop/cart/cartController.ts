@@ -26,3 +26,4 @@ export const getCart = async (res: NextApiResponse, req: NextApiRequest) => {
     return res.status(500).json({ error: `Internal Server Error:${error}` });
   }
 };
+

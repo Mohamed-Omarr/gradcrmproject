@@ -21,56 +21,70 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import axiosAdmin from "@/lib/axios/axiosAdmin";
+import { useMemo, useState } from "react";
 import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
+import {
+  useCreateStockMutation,
+  useDeleteStockMutation,
+  useGetStocksQuery,
+  useUpdateStockMutation,
+} from "../../redux/services/stockApi";
+import { useGetCategoriesQuery } from "../../redux/services/categoryApi";
+import Loader from "@/app/Loader";
 
 export default function Stocks() {
   const [getName, setGetName] = useState<string>("");
   const [getDesc, setGetDesc] = useState<string>("");
   const [openPopUp, setOpenPopUp] = useState<boolean>(false);
-  const [stockData, setStocks] = useState<Stock[]>([]);
-  const [categoryData, setCategories] = useState<Category[]>([]);
   const [update, setUpdate] = useState<boolean>(false);
-  const [updateFollowingId, setUpdateFollowingId] = useState<number | undefined>(
-    undefined
-  );
+  const [updateFollowingId, setUpdateFollowingId] = useState<
+    number | undefined
+  >(undefined);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
   const [currentCategoryName, setCurrentCategoryName] = useState<string>("");
   useState<string>("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(
-    undefined
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<
+    number | undefined
+  >(undefined);
 
   const admin_info = useAdminInfo();
 
-  const get_category_data = async () => {
-    try {
-      const res = await axiosAdmin.get("category/categoryMethods");
+  // get data through rtq
+  const {
+    data: stockData,
+    isSuccess: isSuccessStock,
+    isLoading: isLoadingStock,
+    isError: isStockError,
+  } = useGetStocksQuery();
+  
+  const {
+    data: categoryData,
+    isSuccess: isSuccessCategory,
+    isLoading: isLoadingCategory,
+    isError: isCategoryError,
+  } = useGetCategoriesQuery();
 
-      setCategories(res.data.categories);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
+  const [createStock] = useCreateStockMutation();
+  const [deleteStock] = useDeleteStockMutation();
+  const [updateStock] = useUpdateStockMutation();
 
-  const get_stock_data = async () => {
-    try {
-      const res = await axiosAdmin.get("stock/stockMethods");
-      get_category_data();
-      setStocks(res.data.stocks);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
+  if (isCategoryError) {
+    throw new Error("Failed Getting Categories");
+  }
+
+  if (isStockError) {
+    throw new Error("Failed Getting Stocks");
+  }
 
   const handleSelectCategory = (value: string) => {
     setSelectedCategoryName(value);
 
-    const scanValue = categoryData?.find((item) => item.name === value);
+    const scanValue =
+      isSuccessCategory &&
+      categoryData.categories.find((item) => item.name === value);
     if (scanValue) {
       setSelectedCategoryId(scanValue.id);
     } else {
@@ -80,74 +94,52 @@ export default function Stocks() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
-    try {
-      const res = await axiosAdmin.post("stock/stockMethods", {
-        name: getName,
-        description: getDesc,
-        ownerId: admin_info?.id,
-        categoryId: selectedCategoryId,
-      });
-
-      if (stockData && stockData.length === 0) {
-        setStocks((prev) => [...prev, res.data.createdStock]);
-      } else if (stockData && stockData.length > 0) {
-        setStocks((prev) => [...prev, res.data.createdStock]);
-      } else {
-        setStocks(res.data.createdStock);
-      }
-
-      toastingSuccess(res);
+    const item = {
+      name: getName,
+      description: getDesc,
+      ownerId: admin_info?.id,
+      categoryId: selectedCategoryId,
+    };
+    const res = await createStock(item);
+    if (res.data) {
+      toastingSuccess(res.data.message);
       setOpenPopUp(false);
-
       // changing state to default
       setSelectedCategoryName("");
       setSelectedCategoryId(undefined);
       setGetName("");
       setGetDesc("");
-    } catch (err) {
-      toastingError(err);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const onDelete = async (itemId: number) => {
-    try {
-      const res = await axiosAdmin.delete("stock/stockMethods", {
-        data: {
-          id: itemId,
-          ownerId: admin_info?.id,
-        },
-      });
-      setCategories(res.data.unselectedCategory);
-      setStocks((prev) => prev.filter((product) => product.id !== itemId));
-      toastingSuccess(res);
-    } catch (err) {
-      toastingError(err);
+    const item = {
+      id: itemId,
+      ownerId: admin_info?.id,
+    };
+    const res = await deleteStock(item);
+    if (res.data) {
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
     }
   };
 
   const onUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
+    const item = {
+      id: updateFollowingId,
+      ownerId: admin_info?.id,
+      name: getName,
+      description: getDesc,
+      categoryId: selectedCategoryId,
+    };
+    const res = await updateStock(item);
 
-    try {
-      const res = await axiosAdmin.patch("stock/stockMethods", {
-        id: updateFollowingId,
-        ownerId: admin_info?.id,
-        name: getName,
-        description: getDesc,
-        categoryId: selectedCategoryId,
-      });
-
-      setStocks((prev) =>
-        prev.map((stock) =>
-          stock.id === updateFollowingId
-            ? { ...stock, ...res.data.updatedStock } // Correctly spread properties of updatedStock
-            : stock
-        )
-      );
-
-      setCategories(res.data.updatedCategory);
-
-      toastingSuccess(res);
+    if (res.data) {
+      toastingSuccess(res.data.message);
       setOpenPopUp(false);
       // changing state to default
       setUpdate(false);
@@ -157,24 +149,22 @@ export default function Stocks() {
       setSelectedCategoryId(undefined);
       setGetName("");
       setGetDesc("");
-    } catch (err) {
-      toastingError(err);
+    } else {
+      toastingError(res.error);
     }
   };
 
-  const filteredStocks =
-    stockData && stockData.length > 0
-      ? stockData.filter(
-          (stock) =>
-            stock.name.toLowerCase().includes(searchTerm) ||
-            stock.description?.toLowerCase().includes(searchTerm)
-        )
-      : stockData;
+  const filteredStocks = useMemo(() => {
+    if (!isSuccessStock || !stockData.stocks) return [];
 
-  useEffect(() => {
-    get_stock_data();
-    get_category_data();
-  }, []);
+    const term = searchTerm.toLowerCase();
+
+    return stockData.stocks.filter(
+      (stock) =>
+        stock.name.toLowerCase().includes(term) ||
+        stock.description?.toLowerCase().includes(term)
+    );
+  }, [isSuccessStock, stockData, searchTerm]);
 
   return (
     <div className="h-full space-y-6">
@@ -214,7 +204,7 @@ export default function Stocks() {
                     : "Fill in the details for your new Stock. Click save when you are done."}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Stock Name</Label>
@@ -238,19 +228,25 @@ export default function Stocks() {
                     onChange={(e) => setGetDesc(e.target.value)}
                   />
                 </div>
-                {categoryData && categoryData.length > 0 && !update ? (
+
+                {isLoadingCategory ? (
+                  <Loader />
+                ) : isSuccessCategory &&
+                  categoryData.categories.length > 0 &&
+                  !update ? (
                   <div className="grid gap-2">
                     <Label htmlFor="status">Category</Label>
                     <Select
                       required
                       value={selectedCategoryName}
                       onValueChange={handleSelectCategory}
+                      defaultValue=""
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categoryData
+                        {categoryData.categories
                           .filter((x: Category) => x.name && x.id && !x.stock)
                           .map((item) => (
                             <SelectItem key={item.id} value={item.name}>
@@ -272,33 +268,35 @@ export default function Stocks() {
                         <SelectTrigger>
                           <SelectValue placeholder={currentCategoryName} />
                         </SelectTrigger>
-                        {categoryData && categoryData.length > 0 && (
-                          <SelectContent>
-                            {categoryData
-                              .filter(
-                                (x: Category) => x.name && x.id && !x.stock
-                              )
-                              .map((item) => (
-                                <SelectItem key={item.id} value={item.name}>
-                                  {item.name}
-                                </SelectItem>
-                              ))}
-                            {categoryData
-                              .filter(
-                                (x: Category) =>
-                                  x.id && x.name === currentCategoryName
-                              )
-                              .map((item) => (
-                                <SelectItem
-                                  key={item.id}
-                                  value={item.name}
-                                  className="bg-black text-white font-semibold"
-                                >
-                                  default: {item.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        )}
+
+                        {isSuccessCategory &&
+                          categoryData.categories.length > 0 && (
+                            <SelectContent>
+                              {categoryData.categories
+                                .filter(
+                                  (x: Category) => x.name && x.id && !x.stock
+                                )
+                                .map((item) => (
+                                  <SelectItem key={item.id} value={item.name}>
+                                    {item.name}
+                                  </SelectItem>
+                                ))}
+                              {categoryData.categories
+                                .filter(
+                                  (x: Category) =>
+                                    x.id && x.name === currentCategoryName
+                                )
+                                .map((item) => (
+                                  <SelectItem
+                                    key={item.id}
+                                    value={item.name}
+                                    className="bg-black text-white font-semibold"
+                                  >
+                                    default: {item.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          )}
                       </Select>
                     </div>
                   </div>
@@ -341,7 +339,9 @@ export default function Stocks() {
             </div>
 
             <div className="divide-y max-h-[400px] overflow-y-scroll">
-              {filteredStocks &&
+              {isLoadingStock ? (
+                <Loader />
+              ) : (
                 filteredStocks.length > 0 &&
                 filteredStocks.map((stock) => (
                   <div
@@ -385,7 +385,8 @@ export default function Stocks() {
                       <button onClick={() => onDelete(stock.id)}>Delete</button>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
             </div>
           </div>
         </CardContent>

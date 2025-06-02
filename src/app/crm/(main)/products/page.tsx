@@ -169,7 +169,7 @@ const onNext = async () => {
             return x;
           });
 
-        toastingSuccess(creating,router.refresh);
+        toastingSuccess(creating.data.message,router.refresh);
         setProduct(creating.data.products);
       } else {
         formData.append("id", updateFollowingProduct.id); // <- extend like this

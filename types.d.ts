@@ -182,6 +182,23 @@ type WishlistItems = {
     customerId: string,
 }
 
+type Cart = {
+    id: number, 
+    customerId: string,
+    items:CartItem[]
+}
+
+type CartItem = {
+    productId:  number,
+    quantity:  number
+    total:  number
+}
+
+type RemoveCartItem = {
+    productId:  number,
+}
+
+
 type DeleteWishlistItems = {
     id:number,
     productId:  number,
