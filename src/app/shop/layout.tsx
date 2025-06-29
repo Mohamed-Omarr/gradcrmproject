@@ -9,6 +9,7 @@ import { ToastContainer } from "react-toastify";
 import Providers from "./redux/Providers";
 import { limitedCustomerInfo } from "@/ShopGlobalData/shartLimitedCustomerInfo";
 import { CustomerInfoProvider } from "@/hooks/crm/share-customer-context";
+export const dynamic = "force-dynamic";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
