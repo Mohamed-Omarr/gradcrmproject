@@ -54,10 +54,11 @@ export const updateAddress = async (res: NextApiResponse, req: NextApiRequest) =
   try {
     // if the following condition is true , will handle set to default address only
     if (req.body.previousDefaultAddressId && req.body.default && req.body.id !== req.body.previousDefaultAddressId ) {
+      
       const data:setToDefaultAddress = zodValidatorHelper(validationSetToDefaultAddress,req.body,res)
       const settingToDefault = await setAddressToDefault(data);
       if (settingToDefault.success) {
-        return res.status(204).json({})
+        return res.status(200).json({message:"default updated"})
       } else {
         return res.status(500).json({ error: settingToDefault.error });
       }

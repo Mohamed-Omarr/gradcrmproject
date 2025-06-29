@@ -10,4 +10,5 @@ export default async function  sizeHandler (req:NextApiRequest , res:NextApiResp
         if (req.method === "PATCH") {
             return await updateSizeOfProduct(req,res)
         }
+        return res.status(405).json({error:"Method Not Allowed"});
 }

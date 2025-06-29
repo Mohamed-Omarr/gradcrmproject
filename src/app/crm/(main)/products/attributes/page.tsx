@@ -109,7 +109,6 @@ export default function AttributesPage() {
       ownerId: admin_info.id,
     };
     const res = await createColors(item);
-console.log(res.error);
 
     if (res.data) {
       colorReset();

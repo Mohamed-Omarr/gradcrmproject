@@ -56,7 +56,7 @@ export default function Stocks() {
   const {
     data: stockData,
     isSuccess: isSuccessStock,
-    isLoading: isLoadingStock,
+    isLoading: isGettingStockData,
     isError: isStockError,
   } = useGetStocksQuery();
   
@@ -67,9 +67,11 @@ export default function Stocks() {
     isError: isCategoryError,
   } = useGetCategoriesQuery();
 
-  const [createStock] = useCreateStockMutation();
-  const [deleteStock] = useDeleteStockMutation();
-  const [updateStock] = useUpdateStockMutation();
+  const [createStock,{isLoading:isCreating}] = useCreateStockMutation();
+  const [deleteStock,{isLoading:isDeleting}] = useDeleteStockMutation();
+  const [updateStock,{isLoading:isUpdating}] = useUpdateStockMutation();
+
+  const isLoading =  isGettingStockData || isCreating || isDeleting || isUpdating
 
   if (isCategoryError) {
     throw new Error("Failed Getting Categories");
@@ -187,7 +189,7 @@ export default function Stocks() {
           }}
         >
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={isLoading}>
               <Plus className="mr-2 h-4 w-4" />
               Add New Stock
             </Button>
@@ -339,7 +341,7 @@ export default function Stocks() {
             </div>
 
             <div className="divide-y max-h-[400px] overflow-y-scroll">
-              {isLoadingStock ? (
+              {isLoading ? (
                 <Loader />
               ) : (
                 filteredStocks.length > 0 &&

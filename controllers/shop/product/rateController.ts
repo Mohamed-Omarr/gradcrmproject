@@ -8,6 +8,7 @@ import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/z
 export const createRateForProduct = async ( req:NextApiRequest ,res:NextApiResponse  ) => {
     try {
                 const data:Rate = zodValidatorHelper(validationCreateProductRate,req.body,res)
+                
                 const findCustomer = await prisma.customer.findUnique({where:{id:data.customerId}})
                 
                 if(!findCustomer) {return res.status(400).json({error:"Customer Id Not Found"})}

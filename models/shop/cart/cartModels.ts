@@ -1,3 +1,4 @@
+
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient";
 
 export const getCartDB= async (customerId:string) => {
@@ -7,7 +8,16 @@ export const getCartDB= async (customerId:string) => {
                 customerId:customerId,
             },
             select:{
-                items:true,
+                items:{
+                    select:{
+                        id:true,
+                        productId:true,
+                        quantity:true,
+                        product:true,
+                        size:true,
+                        color:true,
+                    }
+                },
             }
         })
         return { success: true, cart: gettingCart };

@@ -20,12 +20,11 @@ export const addingToCartDB = async (data:CartItem,userId:string) => {
     });
 
     if (existingItem) {
-      // Step 3a: Update the existing item's quantity and total
+      // Step 3a: Update the existing item's quantity
       await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: {
           quantity: existingItem.quantity + data.quantity,
-          total: existingItem.total + data.total,
         },
       });
     } else {
@@ -35,7 +34,8 @@ export const addingToCartDB = async (data:CartItem,userId:string) => {
           cart: { connect: { id: cart.id } },
           product: { connect: { id: data.productId } },
           quantity: data.quantity,
-          total: data.total,
+          size:data.size, 
+          color:data.color     
         },
       });
     }
@@ -47,11 +47,31 @@ export const addingToCartDB = async (data:CartItem,userId:string) => {
 };
 
 
+export const updatingCartItemDB = async (data:CartItem) => {
+  try {
+    // Step 1: Ensure Cart exists or create it
+    await prisma.cartItem.update({
+      where:{
+        id:data.id,
+        productId:data.productId,
+      },
+      data:{
+        quantity:data.quantity
+      }
+    })
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: `Failed updating item of cart: ${error}` };
+  }
+};
+
+
 export const deletingFromCartDB= async (data:RemoveCartItem) => {
     try{
         await prisma.cartItem.delete({
             where:{
-                productId:Number(data.productId),
+                id:data.id,
             }
         })
         return { success: true};

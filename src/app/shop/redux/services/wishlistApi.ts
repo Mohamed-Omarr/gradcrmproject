@@ -6,7 +6,6 @@ type incomingGetData = {
     message:string
 }
 
-
 export const wishlistApi = createApi({
     reducerPath: 'wishlistApi',
     baseQuery: axiosBaseQueryShop(),

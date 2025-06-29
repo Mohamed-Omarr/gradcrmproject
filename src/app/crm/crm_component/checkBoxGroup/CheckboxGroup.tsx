@@ -5,6 +5,12 @@ import { Label } from "@/components/ui/label";
 import { TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 
+type CheckboxOption = {
+  id: string | number;
+  code: string;
+  name: string;
+};
+
 const CheckboxGroup = ({
   label,
   value,
@@ -38,7 +44,7 @@ const CheckboxGroup = ({
         </div>
         <Separator />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {options.map((opt: any) => (
+          {options.map((opt: CheckboxOption) => (
             <div key={opt.id} className="flex items-center space-x-2">
               <Checkbox
                 id={`${value}-${opt.id}`}

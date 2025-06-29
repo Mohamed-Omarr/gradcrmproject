@@ -8,6 +8,11 @@ export const validationCreateAddress = z.object({
     city: z.string().min(1,{message:"can not be empty "}),
     country: z.string().min(1,{message:"can not be empty "}),
     zipCode: z.preprocess((val)=>Number(val) ,z.number({message:"type of id must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
+    default: z.preprocess((val) => {
+    if (val === "true") return true;
+    if (val === "false") return false;
+    return val; 
+    }, z.boolean({message:"must be boolean"}))
 })
 
 export const validationUpdateAddress = z.object({

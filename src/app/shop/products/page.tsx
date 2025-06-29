@@ -67,7 +67,7 @@ export default function AllProductsPage() {
       productId: itemId,
       customerId: customerInfo.id,
     };
-    
+
     const res = await addToWishlistItem(item);
 
     if (res.data) {
@@ -376,6 +376,10 @@ export default function AllProductsPage() {
                   ? total / scores.length
                   : 0;
 
+                const isWishListed = item.wishlist.some(
+                  (i) => i.customerId === customerInfo.id
+                );
+
                 return (
                   <div
                     key={item.id}
@@ -385,13 +389,13 @@ export default function AllProductsPage() {
                     <div className="absolute  top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() =>
-                          item.isWishListed
+                          isWishListed
                             ? removeFromWishList(item.id)
                             : addingToWishlist(item.id)
                         }
                         className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors"
                       >
-                        <Heart fill={item.isWishListed ? "red" : "white"} />
+                        <Heart fill={isWishListed ? "red" : "white"} />
                       </button>
                     </div>
 

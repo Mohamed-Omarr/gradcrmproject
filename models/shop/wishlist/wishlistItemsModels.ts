@@ -2,22 +2,12 @@ import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
 
 export const addingToWishlistItems = async (data:WishlistItems) => {
     try{
-        await prisma.$transaction([
-            prisma.wishlistItems.create({
+        await prisma.wishlistItems.create({
                 data: {
                     customerId:data.customerId,
                     productId:data.productId,
                 }
-            }),
-            prisma.product.update({
-                where:{
-                    id:data.productId,
-                },
-                data: {
-                    isWishListed:true,
-                }
-            }),
-        ])
+            });
         return { success: true };
     }catch(error){
         return { success: false, error: `Failed adding to wishlist ${error}` };
@@ -26,22 +16,13 @@ export const addingToWishlistItems = async (data:WishlistItems) => {
 
 export const deletingWishlistItems = async (data:DeleteWishlistItems) => {
     try{
-        await prisma.$transaction([
-            prisma.wishlistItems.delete({
+        await prisma.wishlistItems.delete({
             where: {
+                id:data.id,
                 customerId: data.customerId,
                 productId: data.productId,
             },
-        }),
-        prisma.product.update({
-                where:{
-                    id:data.productId,
-                },
-                data: {
-                    isWishListed:false,
-                }
-            }),
-        ])
+        });
         return { success: true };
     }catch(error){
         return { success: false, error: `Failed removing product from wishlist ${error}` };
@@ -63,11 +44,7 @@ export const getWishlistItems = async (customerId:string) => {
                     name:true,
                     price:true,
                     thumbnail:true,
-                    category:{
-                        select:{
-                            name:true,
-                        }
-                    },
+                    qty:true,
                     ratings:{
                         select:{
                             score:true,

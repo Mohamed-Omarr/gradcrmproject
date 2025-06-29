@@ -1,16 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, Trash2 } from "lucide-react";
-import CarImag from "../../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg";
-import axiosClient from "@/lib/axios/axiosClient";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { useRouter } from "next/navigation";
 import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
-import { useGetWishlistQuery } from "../redux/services/wishlistApi";
+import {
+  useDeleteWishlistItemMutation,
+  useGetWishlistQuery,
+} from "../redux/services/wishlistApi";
 import Loader from "@/app/Loader";
+import { useAddToCartItemsMutation } from "../redux/services/cartApi";
 
 export default function WishlistPage() {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<number | null>(
@@ -18,12 +20,27 @@ export default function WishlistPage() {
   );
   const router = useRouter();
 
-  // const moveToCart = (id: number) => {
-  //   // In a real app, you would add the item to the cart here
-  //   console.log(`Moving item ${id} to cart`)
-  //   // Optionally remove from wishlist after adding to cart
-  //   // setWishlistItems(wishlistItems.filter(item => item.id !== id))
-  // }
+  const [addToCart] = useAddToCartItemsMutation();
+
+  const [deleteFromWishList] = useDeleteWishlistItemMutation();
+
+  const moveToCart = async (item: ShopProduct) => {
+
+    const product = {
+      productId: item.id,
+      quantity: item.qty,
+      total: item.price * item.qty,
+    };
+
+    const res = await addToCart(product);
+
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingSuccess(res.error);
+    }
+
+  };
 
   const customerInfo = useCustomerInfo();
 
@@ -33,26 +50,30 @@ export default function WishlistPage() {
 
   const { data, isLoading, isSuccess, isError } = useGetWishlistQuery();
 
-  let wishlistItems = [];
-
+  let wishlistItems: WishlistItems[] = [];
 
   if (isSuccess) {
-
-    wishlistItems = data.wishlistItems.map((x)=>x.product);
+    wishlistItems = data.wishlistItems;
   } else {
     wishlistItems = [];
   }
 
+  if (isError) {
+    throw new Error("Failed to fetch Wishlist");
+  }
+
   const removeFromWishList = async (itemId: number) => {
-    await axiosClient
-      .delete("wishlist/wishlistMethods", {
-        data: {
-          productId: itemId,
-          customerId: customerInfo.id,
-        },
-      })
-      .then((s) => toastingSuccess(s, router.refresh))
-      .catch((x) => toastingError(x));
+    const item = {
+      productId: itemId,
+      customerId: customerInfo.id,
+    };
+    const res = await deleteFromWishList(item);
+
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
   };
 
   return (
@@ -105,97 +126,87 @@ export default function WishlistPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {wishlistItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300"
-                >
-                  {/* Remove button */}
-                  <button
-                    onClick={() => setShowRemoveConfirm(item.id)}
-                    className="absolute top-3 right-3 z-10 bg-white p-1.5 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+              {wishlistItems
+                .map((p) => p.product)
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300"
                   >
-                    <Trash2 className="h-4 w-4 text-gray-700 hover:text-red-500" />
-                  </button>
+                    {/* Remove button */}
+                    <button
+                      onClick={() => setShowRemoveConfirm(item.id)}
+                      className="absolute top-3 right-3 z-10 bg-white p-1.5 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4 text-gray-700 hover:text-red-500" />
+                    </button>
 
-                  {/* Product image */}
-                  <Link
-                    href={`/product/${item.id}`}
-                    className="block overflow-hidden"
-                  >
-                    <div className="overflow-hidden bg-gray-50">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        width={400}
-                        height={400}
-                        className="h-[300px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    </div>
-                  </Link>
-
-                  {/* Product details */}
-                  <div className="p-4">
-                    {/* Product name */}
-                    <Link href={`/product/${item.id}`}>
-                      <h3 className="text-base font-medium line-clamp-1 mb-1 hover:text-gray-700">
-                        {item.name}
-                      </h3>
+                    {/* Product image */}
+                    <Link
+                      href={`/product/${item.id}`}
+                      className="block overflow-hidden"
+                    >
+                      <div className="overflow-hidden bg-gray-50">
+                        <Image
+                          src={item.thumbnail}
+                          alt={item.name}
+                          width={400}
+                          height={400}
+                          className="h-[300px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
                     </Link>
 
-                    {/* Price */}
-                    <div className="flex items-center space-x-2 mb-2">
-                      <p className="text-base font-bold">
-                        ${item.price.toFixed(2)}
-                      </p>
-                      {item.onSale && item.originalPrice && (
-                        <p className="text-sm text-gray-500 line-through">
-                          ${item.originalPrice.toFixed(2)}
+                    {/* Product details */}
+                    <div className="p-4">
+                      {/* Product name */}
+                      <Link href={`/product/${item.id}`}>
+                        <h3 className="text-base font-medium line-clamp-1 mb-1 hover:text-gray-700">
+                          {item.name}
+                        </h3>
+                      </Link>
+
+                      {/* Price */}
+                      <div className="flex items-center space-x-2 mb-2">
+                        <p className="text-base font-bold">
+                          ${item.price.toFixed(2)}
                         </p>
-                      )}
-                    </div>
-
-                    {/* Color and Size */}
-                    <div className="flex items-center text-sm text-gray-500 mb-3">
-                      <span>Color: {item.color}</span>
-                      <span className="mx-2">•</span>
-                      <span>Size: {item.size}</span>
-                    </div>
-
-                    {/* Add to cart button */}
-                    <button
-                      onClick={() => moveToCart(item.id)}
-                      className="w-full flex items-center justify-center bg-gray-900 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-black transition-colors"
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Add to Cart
-                    </button>
-                  </div>
-
-                  {/* Remove confirmation */}
-                  {showRemoveConfirm === item.id && (
-                    <div className="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center p-4 z-20">
-                      <p className="text-center font-medium mb-4">
-                        Remove this item from your wishlist?
-                      </p>
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => setShowRemoveConfirm(null)}
-                          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => removeFromWishList(item.id)}
-                          className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
-                        >
-                          Remove
-                        </button>
                       </div>
+
+                      {/* Add to cart button */}
+                      <button
+                        onClick={() => moveToCart(item)}
+                        className="w-full flex items-center justify-center bg-gray-900 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-black transition-colors"
+                      >
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        Add to Cart
+                      </button>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    {/* Remove confirmation */}
+                    {showRemoveConfirm === item.id && (
+                      <div className="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center p-4 z-20">
+                        <p className="text-center font-medium mb-4">
+                          Remove this item from your wishlist?
+                        </p>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => setShowRemoveConfirm(null)}
+                            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => removeFromWishList(item.id)}
+                            className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
             </div>
           ))
         )}

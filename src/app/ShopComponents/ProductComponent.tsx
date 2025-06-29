@@ -15,13 +15,20 @@ import {
   X,
 } from "lucide-react";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
-import axiosClient from "@/lib/axios/axiosClient";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import Loader from "../Loader";
 import { useRouter } from "next/navigation";
 import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
 import { useAddToCartItemsMutation } from "../shop/redux/services/cartApi";
-import { useAddToWishlistItemMutation, useDeleteWishlistItemMutation } from "../shop/redux/services/wishlistApi";
+import {
+  useAddToWishlistItemMutation,
+  useDeleteWishlistItemMutation,
+} from "../shop/redux/services/wishlistApi";
+import {
+  useCreateReviewMutation,
+  useDeleteReviewMutation,
+  useUpdateReviewMutation,
+} from "../shop/redux/services/rateApi";
 
 type ReviewProduct = {
   score: number;
@@ -41,7 +48,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     (comment) => comment.customerId === customerInfo.id
   );
 
-  const [mainImage, setMainImage] = useState<string>(product.thumbnail);
+  const mainImage = product.thumbnail;
 
   const [selectedColor, setSelectedColor] = useState<string>(
     product.colors[0].code
@@ -56,6 +63,11 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     decrease: 1,
     current: 1,
   });
+
+
+  const isWishListed = product.wishlist.some(
+    (i) => i.productId === product.id && i.customerId === customerInfo.id
+  );
 
   const [reviewModalOpen, setReviewModalOpen] = useState<boolean>(false);
 
@@ -77,7 +89,6 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     less: 2,
     initial: 0,
   });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [isEditingInCommentSection, setIsEditingInCommentSection] =
     useState<boolean>(false);
@@ -110,65 +121,68 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     return acc;
   }, {} as Record<number, number>);
   const router = useRouter();
+
   // functions send to api
+const [creatingReview, { isLoading: isCreating }] = useCreateReviewMutation();
+const [updatingReview, { isLoading: isUpdating }] = useUpdateReviewMutation();
+const [deletingReview, { isLoading: isDeleting }] = useDeleteReviewMutation();
+
+const isAnyLoading = isCreating || isUpdating || isDeleting;
+
   const submitReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    try {
-      const creating = await axiosClient.post("product/rateProductMethods", {
-        customerId: customerInfo.id,
-        productId: product.id,
-        score: newReview.score,
-        review: newReview.review,
-      });
+    const item = {
+      customerId: customerInfo.id,
+      productId: product.id,
+      score: newReview.score,
+      review: newReview.review,
+    };
+    const creating = await creatingReview(item);
+    if (creating.data) {
       router.refresh();
       handleRestNewReview();
-      toastingSuccess(creating);
-    } catch (err) {
-      toastingError(err);
-    } finally {
-      setIsLoading(false);
+      toastingSuccess(creating.data.message);
+    } else {
+      toastingError(creating.error);
     }
   };
 
   const updateReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    try {
-      const updating = await axiosClient.patch("product/rateProductMethods", {
-        id: editingReviewId,
-        customerId: customerInfo.id,
-        productId: product.id,
-        score: editingReview.score,
-        review: editingReview.review,
-      });
+    const item = {
+      id: editingReviewId,
+      customerId: customerInfo.id,
+      productId: product.id,
+      score: editingReview.score,
+      review: editingReview.review,
+    };
+
+    const updating = await updatingReview(item);
+    
+    if (updating.data) {
       router.refresh();
-      handleRestEditReview();
-      toastingSuccess(updating);
-    } catch (err) {
-      toastingError(err);
-    } finally {
-      setIsLoading(false);
+      handleRestNewReview();
+      toastingSuccess(updating.data.message);
+    } else {
+      toastingError(updating.error);
     }
   };
 
   const deleteReview = async () => {
-    setIsLoading(true);
-    try {
-      const deleting = await axiosClient.delete("product/rateProductMethods", {
-        data: {
-          id: deleteReviewId,
-          customerId: customerInfo.id,
-          productId: product.id,
-        },
-      });
+    const item = {
+      id: deleteReviewId,
+      customerId: customerInfo.id,
+      productId: product.id,
+    };
+
+    const deleting = await deletingReview(item);
+
+    if (deleting.data) {
       router.refresh();
       setDeleteReviewId(undefined);
-      toastingSuccess(deleting);
-    } catch (err) {
-      toastingError(err);
-    } finally {
-      setIsLoading(false);
+      toastingSuccess(deleting.data.message);
+    } else {
+      toastingError(deleting.error);
     }
   };
 
@@ -176,7 +190,8 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     const product = {
       productId: item.id,
       quantity: quantity.current,
-      total: item.price * quantity.current,
+      size:selectedSize,
+      color:selectedColor
     };
 
     const res = await addToCart(product);
@@ -204,17 +219,17 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
   };
 
   const removeFromWishList = async (itemId: number) => {
-      const item = {
-        productId: itemId,
-        customerId: customerInfo.id,
-      };
-      const res = await removeWishListItem(item);
-      if (res.data) {
-        toastingSuccess(res.data.message, router.refresh);
-      } else {
-        toastingError(res.error);
-      }
+    const item = {
+      productId: itemId,
+      customerId: customerInfo.id,
     };
+    const res = await removeWishListItem(item);
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
+  };
 
   // helper functions
   const handleEditReview = (selectedReview: Rate) => {
@@ -453,13 +468,16 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                   </button>
                   <button
                     onClick={() =>
-                      product.isWishListed
+                      isWishListed
                         ? removeFromWishList(product.id)
                         : addingToWishlist(product.id)
                     }
                     className="flex-1 border border-gray-300 text-gray-900 py-3 px-4 rounded-md font-medium hover:bg-gray-50 flex items-center justify-center"
                   >
-                    <Heart fill={product.isWishListed ? "red" : "white"} className="h-5 w-5 mr-2" />
+                    <Heart
+                      fill={isWishListed ? "red" : "white"}
+                      className="h-5 w-5 mr-2"
+                    />
                   </button>
                 </div>
 
@@ -481,7 +499,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
               </h2>
               {!customerCommentExits ? (
                 <button
-                  disabled={isLoading}
+                  disabled={isAnyLoading}
                   onClick={() => setReviewModalOpen(true)}
                   className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black transition-colors"
                 >
@@ -489,7 +507,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                 </button>
               ) : (
                 <button
-                  disabled={isLoading}
+                  disabled={isAnyLoading}
                   onClick={() => (
                     setEditReviewModalOpen(true),
                     setEditingReviewId(customerCommentExits.id)
@@ -501,7 +519,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
               )}
             </div>
 
-            {isLoading ? (
+            {isAnyLoading ? (
               <Loader />
             ) : (
               <>

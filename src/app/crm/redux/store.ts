@@ -4,9 +4,9 @@ import { categoryApi } from "./services/categoryApi";
 import { stockApi } from "./services/stockApi";
 import { colorApi } from "./services/colorApi";
 import { sizeApi } from "./services/sizeApi";
-
+import { orderApi } from "./services/orderApi";
 // Define your API middleware array
-const apiSection = [categoryApi.middleware, stockApi.middleware,colorApi.middleware,sizeApi.middleware];
+const apiSection = [categoryApi.middleware, stockApi.middleware,colorApi.middleware,sizeApi.middleware,orderApi.middleware];
 
 export const store = configureStore({
     reducer: {
@@ -14,6 +14,7 @@ export const store = configureStore({
     [stockApi.reducerPath]: stockApi.reducer,
     [colorApi.reducerPath]: colorApi.reducer,
     [sizeApi.reducerPath]: sizeApi.reducer,
+    [orderApi.reducerPath]: orderApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(...apiSection), 

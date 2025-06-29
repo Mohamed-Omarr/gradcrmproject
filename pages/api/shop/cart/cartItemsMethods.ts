@@ -1,9 +1,13 @@
 import { NextApiRequest , NextApiResponse } from "next";
-import { addToCart, deleteFromCart } from "../../../../controllers/shop/cart/cartItemsController";
+import { addToCart, deleteFromCart, updateCartItem } from "../../../../controllers/shop/cart/cartItemsController";
 
 export default async function  cartItemHandler (req:NextApiRequest , res:NextApiResponse) {
     if (req.method === "POST") {
         return await addToCart(res,req)  
+    }
+
+    if (req.method === "PATCH") {
+        return await updateCartItem(res,req)  
     }
 
     if (req.method === "DELETE") {

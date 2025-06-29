@@ -114,7 +114,6 @@ type ShopProduct = {
     sizes:Sizes[],
     ratings:   Rate[]
     wishlist:    WishlistItems[],
-    isWishListed:   boolean
 }
 
 type ShopCategory = {
@@ -177,25 +176,27 @@ type ColorOfProduct = {
 
 
 type WishlistItems = {
-    product:   ShopProduct[]
+    id: number,
+    product:   ShopProduct
     productId:  number,
     customerId: string,
 }
 
 type Cart = {
-    id: number, 
-    customerId: string,
     items:CartItem[]
 }
 
 type CartItem = {
+    id: number,
     productId:  number,
     quantity:  number
-    total:  number
+    product: ShopProduct
+    color:string,
+    size:string,
 }
 
 type RemoveCartItem = {
-    productId:  number,
+    id:number,
 }
 
 
@@ -226,4 +227,98 @@ type setToDefaultAddress = {
     customerId:  string,
     default:  boolean,
     previousDefaultAddressId:  number,
+}
+
+
+type Card = {
+    id: number
+    brand:  string,
+    last4:  string,
+    expiry:  string,
+    isDefault:  boolean,
+    expiryYear: string,
+    expiryMonth: string,
+    customerId:  string,
+    holderName:  string,
+    stripePaymentMethodId:string,
+}
+
+type DeleteCard = {
+    id: number
+    customerId:  string,
+}
+
+type setToDefaultCard = {
+    id: number
+    customerId:  string,
+    default:  boolean,
+    previousDefaultCardId:  number,
+}
+
+
+type CreateOrderPayload = {
+  stripePaymentIntentId: string,
+  customerId: string,
+  total: number, // in cents
+  currency: "usd",
+  orderItem:OrderItem[];
+};
+
+// CRM Order
+type Order = {
+  id: number,
+  orderItem:OrderItem[],
+  createdAt: string,
+  status:string,
+  customer: customerData,
+  total: number, // in cents
+  currency: "usd",
+};
+
+type ShopOrder = {
+  id: number,
+  total: number, // in cents
+  currency: "usd",
+  orderItem:OrderItem[],
+  createdAt: string,
+  status:string
+};
+
+type OrderItem = {
+    id: number,
+    orderId: number,
+    productId: number,
+    name: string,
+    image: string,
+    color: string,
+    size: string,
+    quantity: number,
+    price: number, 
+};
+
+type UpdateOrderStatus= {
+  orderId: number,
+  newStatus: "processing" | "accepted",
+};
+
+
+type CRMGetAllCustomer = {
+    id:string,
+    name:string,
+    email:string,
+    createdAt:string,
+    Order:{
+        id:number,
+        total:number,
+        currency:string,
+        updatedAt:string
+    }[],
+    address:{
+        id:number,
+        street:string,
+        zipCode:string,
+        city:string,
+        country:string,
+        addressType:string,
+    }[]
 }

@@ -2,7 +2,7 @@ import { axiosBaseQueryShop } from "@/lib/axios/axiosBaseQueryShop";
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 type incomingGetData = {
-    cart:[],
+    cart:Cart,
     message:string
 }
 
@@ -12,7 +12,7 @@ export const cartApi = createApi({
     endpoints: (build) => ({
         getCartItems: build.query<incomingGetData,void>({
             query: () => ({
-                url:'product/allProducts',
+                url:'cart/cartMethods',
                 method:'GET'
             }),
         }),
@@ -23,7 +23,21 @@ export const cartApi = createApi({
                 data:followingItem,
             }),
         }),
+        updateCartItems: build.mutation({
+            query: (followingItem) => ({
+                url:'cart/cartItemsMethods',
+                method:'PATCH',
+                data:followingItem,
+            }),
+        }),
+        deleteFromCartItems: build.mutation({
+            query: (followingItem) => ({
+                url:'cart/cartItemsMethods',
+                method:'DELETE',
+                data:followingItem,
+            }),
+        }),
     })
 })
 
-export const { useGetCartItemsQuery , useAddToCartItemsMutation } = cartApi;
+export const { useGetCartItemsQuery , useAddToCartItemsMutation ,useUpdateCartItemsMutation ,useDeleteFromCartItemsMutation } = cartApi;

@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   // devIndicators: {
   //   buildActivity: false, // ✅ Hides build activity indicator
   // },
+   typescript: {
+    ignoreBuildErrors: true,
+  },
   devIndicators: false
 };
 

@@ -38,11 +38,13 @@ export default function Categories() {
   const admin_info = useAdminInfo();
 
   // get data through rtq
-  const { data, isLoading, isSuccess } = useGetCategoriesQuery();
+  const { data, isLoading:isGettingData, isSuccess } = useGetCategoriesQuery();
 
-  const [createCategory] = useCreateCategoryMutation();
-  const [deleteCategory] = useDeleteCategoryMutation();
-  const [updateCategory] = useUpdateCategoryMutation();
+  const [createCategory,{isLoading:isCreating}] = useCreateCategoryMutation();
+  const [deleteCategory,{isLoading:isDeleting}] = useDeleteCategoryMutation();
+  const [updateCategory,{isLoading:isUpdating}] = useUpdateCategoryMutation();
+
+  const isLoading = isGettingData || isCreating || isDeleting || isUpdating
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
@@ -128,7 +130,7 @@ export default function Categories() {
           }}
         >
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={isLoading}>
               <Plus className="mr-2 h-4 w-4" />
               Add New Category
             </Button>

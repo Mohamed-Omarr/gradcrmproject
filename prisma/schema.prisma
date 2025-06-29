@@ -63,17 +63,20 @@ model Admin {
 
 // Customer
 model Customer {
-  id           String          @id @default(uuid())
-  name         String
-  email        String          @unique
-  password     String
-  createdAt    DateTime        @default(now())
-  role         String
-  refreshToken String?         @db.Text
-  ratings      Rating[]
-  wishlist     WishlistItems[]
-  Cart         Cart?
-  address      Address[]
+  id               String          @id @default(uuid())
+  name             String
+  email            String          @unique
+  password         String
+  createdAt        DateTime        @default(now())
+  role             String
+  refreshToken     String?         @db.Text
+  stripeCustomerId String?
+  ratings          Rating[]
+  wishlist         WishlistItems[]
+  Cart             Cart?
+  address          Address[]
+  Order            Order[]
+  savedCard        savedCard[]
 }
 
 // Product
@@ -93,8 +96,6 @@ model Product {
   ratings Rating[] @relation("ProductRatings")
 
   wishlist WishlistItems[]
-
-  isWishListed Boolean @default(false)
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
@@ -183,8 +184,7 @@ model WishlistItems {
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId String
 
-  @@unique([customerId])
-  @@unique([productId])
+  @@unique([customerId, productId])
 }
 
 // Cart
@@ -205,8 +205,9 @@ model CartItem {
   cart      Cart    @relation(fields: [cartId], references: [id])
   cartId    Int
   quantity  Int
-  // sku       String
-  total     Float
+
+  size  String
+  color String
 }
 
 // Address of customer
@@ -220,4 +221,59 @@ model Address {
   default     Boolean  @default(false)
   customer    Customer @relation(fields: [customerId], references: [id])
   customerId  String
+}
+
+// Cards of customers
+enum CardType {
+  VISA
+  MASTERCARD
+}
+
+model savedCard {
+  id                    Int      @id @default(autoincrement())
+  brand                 String
+  last4                 String
+  holderName            String
+  isDefault             Boolean  @default(false)
+  customer              Customer @relation(fields: [customerId], references: [id])
+  customerId            String
+  stripePaymentMethodId String
+  expiryMonth           Int
+  expiryYear            Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([customerId, stripePaymentMethodId])
+  @@index([customerId])
+}
+
+enum OrderType {
+  processing
+  accepted    
+}
+
+model Order {
+  id                    Int         @id @default(autoincrement())
+  customer              Customer    @relation(fields: [customerId], references: [id])
+  customerId            String
+  stripePaymentIntentId String?
+  total                 Int
+  currency              String
+  status                OrderType
+  orderItems            OrderItem[]
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        Int    @id @default(autoincrement())
+  order     Order  @relation(fields: [orderId], references: [id])
+  orderId   Int
+  productId Int
+  name      String
+  image     String
+  color     String
+  size      String
+  quantity  Int
+  price     Int
 }

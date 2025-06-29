@@ -10,4 +10,5 @@ export default async function  colorHandler (req:NextApiRequest , res:NextApiRes
         if (req.method === "PATCH") {
             return await updateColorOfProduct(req,res)
         }
+        return res.status(405).json({error:"Method Not Allowed"});
 }

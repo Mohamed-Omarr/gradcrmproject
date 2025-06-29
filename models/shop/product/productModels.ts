@@ -13,7 +13,6 @@ export const get_all_product = async () => {
                     thumbnail:true,
                     colors:true,
                     sizes:true,
-                    isWishListed:true,
                     category:{
                         select:{
                             name:true,
@@ -25,6 +24,12 @@ export const get_all_product = async () => {
                             score:true,
                         }
                     },
+                    wishlist:{
+                        select:{
+                            productId:true,
+                            customerId:true,
+                        }
+                    }
                 },
                 })
                 
@@ -51,7 +56,6 @@ export const get_product_by_id = async (productId:string) => {
                     thumbnail:true,
                     colors:true,
                     sizes:true,
-                    isWishListed:true,
                     category:{
                         select:{
                             name:true,
@@ -74,6 +78,12 @@ export const get_product_by_id = async (productId:string) => {
                             }
                         }
                     },
+                    wishlist:{
+                        select:{
+                            productId:true,
+                            customerId:true,
+                        }
+                    }
                     
                 }
                 })
@@ -97,7 +107,6 @@ export const get_products_by_category = async (categoryId:string) => {
                             name:true,
                             thumbnail:true,
                             price:true,
-                            isWishListed:true,
                             ratings:{
                                 select:{
                                     score:true,

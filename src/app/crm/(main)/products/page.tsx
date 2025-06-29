@@ -338,7 +338,7 @@ const onNext = async () => {
                   <DialogTitle>Add New Product</DialogTitle>
                   <DialogDescription>
                     Fill in the details for your new product. Click save when
-                    you're done.
+                    you are done.
                   </DialogDescription>
                 </DialogHeader>
 
