@@ -8,16 +8,16 @@ function Footer() {
           <div className="flex flex-wrap gap-8 items-start max-md:max-w-full">
             <div className="flex flex-col items-start min-w-[240px] w-[352px]">
               <div className="max-w-full text-2xl font-medium leading-none text-center text-black w-[105px]">
-                3legant<span className="text-neutral-900">.</span>
+                <span className="text-neutral-900">.</span>
               </div>
               <div className="flex flex-col mt-8 w-40 max-w-full text-sm leading-loose text-neutral-900">
                 <div className="flex flex-col w-full">
                   <div className="flex flex-col w-full">
-                    <div>43111 Hai Trieu street,</div>
-                    <div className="mt-2">District 1, HCMC</div>
-                    <div className="mt-2">Vietnam</div>
+                    <div></div>
+                    <div className="mt-2"></div>
+                    <div className="mt-2"></div>
                   </div>
-                  <div className="mt-5">84-756-3237</div>
+                  <div className="mt-5"></div>
                 </div>
               </div>
               <div className="flex gap-6 items-start mt-8">
@@ -84,7 +84,7 @@ function Footer() {
           <div className="flex flex-col justify-center py-8 mt-16 w-full border-t border-solid border-t-zinc-500 min-h-[96px] max-md:mt-10 max-md:max-w-full">
             <div className="flex justify-between items-center w-full max-md:max-w-full">
               <div className="flex flex-wrap gap-4 items-start self-stretch my-auto text-xs leading-loose min-w-[240px] text-neutral-900 w-[1120px] max-md:max-w-full">
-                <div>Copyright © 2023 3legant. All rights reserved</div>
+                <div>Copyright © 2025  All rights reserved</div>
                 <div className="flex gap-4 justify-center items-center pl-4 text-right border-l border-solid border-l-zinc-500 border-zinc-500">
                   <div className="self-stretch my-auto">Privacy Policy</div>
                   <div className="self-stretch my-auto">Terms & Conditions</div>

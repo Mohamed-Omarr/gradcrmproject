@@ -2,7 +2,6 @@ import {  NextApiRequest, NextApiResponse } from "next";
 import {  validationColorsOfProduct, validationCreateColors,  validationDeleteColors,  validationUpdateColors,  } from "../../../../_lib_backend/validation/attributesValidation";
 import prisma from "../../../../_lib_backend/prismaClient/PrismaClient";
 import { creating_colors, creating_product_color, deleting_colors, getting_colors, updating_colors, updating_product_color } from "../../../../models/crm/product/attributes/colorsModels";
-import { decodeToken } from "../../../../_lib_backend/token/decodeToken";
 import { normalizeToArray } from "../../../../_lib_backend/validation/zodHelper/normalized";
 import { zodValidatorHelper } from "../../../../_lib_backend/validation/zodHelper/zodValidatorHelper";
 
@@ -77,13 +76,9 @@ export const deleteColor = async ( req:NextApiRequest ,res:NextApiResponse  ) =>
 
 export const getColor = async (req:NextApiRequest ,res:NextApiResponse) => {
     try {
-         const tokenData = await decodeToken(req.headers.authorization);
-                
-                            if(typeof tokenData !== "string"){
-                                return res.status(401).json({message:" Invalid token ",error:tokenData.error})
-                            }
+         
                             
-                 const get_colors = await getting_colors(tokenData)
+                 const get_colors = await getting_colors()
     
                  if(get_colors.success){
                      return res.status(200).json({message:" Fetched successfully ",colors:get_colors.colors})

@@ -51,7 +51,7 @@ export const deleting_colors = async (data:removeSizes) => {
 }
 
 
-export const getting_colors = async (adminId:string) => {
+export const getting_colors = async () => {
     try{
         const allColors = await prisma.colors.findMany({
             select:{
@@ -59,9 +59,6 @@ export const getting_colors = async (adminId:string) => {
                 name:true,
                 code:true,
             },
-            where:{
-                ownerId:adminId
-            }
         })
         return { success: true, colors:allColors };
     }catch(error){
