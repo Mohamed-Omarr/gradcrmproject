@@ -31,12 +31,6 @@ function Header() {
           >
             Shop
           </Link>
-          <Link
-            href="/categories"
-            className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
-          >
-            Collections
-          </Link>
         </nav>
         <div className="flex-1 flex items-center justify-end space-x-4">
           <div className="relative hidden md:flex w-full max-w-sm items-center">
@@ -49,9 +43,9 @@ function Header() {
           </div>
           <button className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
             <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-900 text-[10px] font-medium text-white flex items-center justify-center">
+            {/* <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-900 text-[10px] font-medium text-white flex items-center justify-center">
               3
-            </span>
+            </span> */}
           </button>
           <button className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
             <User className="h-5 w-5" />

@@ -16,11 +16,14 @@ import { useRouter } from "next/navigation";
 import { useGetProductsQuery } from "../redux/services/productApi";
 import Loader from "@/app/Loader";
 import { useGetCategoriesQuery } from "../redux/services/categoryApi";
-import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
 import {
   useAddToWishlistItemMutation,
   useDeleteWishlistItemMutation,
 } from "../redux/services/wishlistApi";
+import { useGetCustomerInfoQuery } from "../redux/services/customerInfoApi";
+import { IsCustomerAuthed } from "@/lib/utils";
+import { toastingInfo } from "@/lib/toast_message/toastingInfo";
+import { useAddToCartItemsMutation } from "../redux/services/cartApi";
 
 export default function AllProductsPage() {
   const [filterOpen, setFilterOpen] = useState(false);
@@ -35,7 +38,19 @@ export default function AllProductsPage() {
     priceRange: [0, 0],
   });
   const [sortStatus, setSortStatus] = useState<string>("featured");
+  const isAuthed = IsCustomerAuthed();
   const router = useRouter();
+
+  const {
+    data: customerInfo,
+    isError: isCustomerInfoError,
+  } = useGetCustomerInfoQuery(undefined, {
+    skip: !isAuthed,
+  });
+
+  if (isAuthed && isCustomerInfoError) {
+    throw new Error("Failed getting customer Info");
+  }
 
   const {
     data: products,
@@ -52,20 +67,20 @@ export default function AllProductsPage() {
   } = useGetCategoriesQuery();
 
   // add to wishlist
-  const customerInfo = useCustomerInfo();
-
-  if (!customerInfo) {
-    throw new Error("Failed getting customer Info");
-  }
 
   const [removeWishListItem] = useDeleteWishlistItemMutation();
 
   const [addToWishlistItem] = useAddToWishlistItemMutation();
 
   const addingToWishlist = async (itemId: number) => {
+    if (!isAuthed) {
+      toastingInfo("Login", router);
+      return;
+    }
+
     const item = {
       productId: itemId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
     };
 
     const res = await addToWishlistItem(item);
@@ -80,7 +95,7 @@ export default function AllProductsPage() {
   const removeFromWishList = async (itemId: number) => {
     const item = {
       productId: itemId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
     };
     const res = await removeWishListItem(item);
     if (res.data) {
@@ -89,6 +104,30 @@ export default function AllProductsPage() {
       toastingError(res.error);
     }
   };
+
+  // add to cart
+  const [addToCart] = useAddToCartItemsMutation();
+  const addingToCart = async (item: ShopProduct) => {
+       if (!isAuthed) {
+        toastingInfo("Login",router)
+        return;
+      }
+  
+      const product = {
+        productId: item.id,
+        quantity: item.qty,
+        size: item.sizes[0].code,
+        color: item.colors[0].code,
+      };
+  
+      const res = await addToCart(product);
+  
+      if (res.data) {
+        toastingSuccess(res.data.message);
+      } else {
+        toastingError(res.error);
+      }
+    };
 
   // handling filter product
   const filteredProducts = useMemo(() => {
@@ -150,12 +189,11 @@ export default function AllProductsPage() {
 
       setHightPrice(maxPrice);
       setLowestPrice(minPrice);
-
-      // If you want to update filter as well
-      // setFilter((prev) => ({
-      //   ...prev,
-      //   priceRange: [minPrice, maxPrice],
-      // }));
+     
+      setFilter((prev) => ({
+        ...prev,
+        priceRange: [minPrice, maxPrice],
+      }));
     }
   }, [isProductSuccess, products]);
 
@@ -377,7 +415,7 @@ export default function AllProductsPage() {
                   : 0;
 
                 const isWishListed = item.wishlist.some(
-                  (i) => i.customerId === customerInfo.id
+                  (i) => i.customerId === customerInfo?.user.id
                 );
 
                 return (
@@ -459,7 +497,7 @@ export default function AllProductsPage() {
                       </div>
 
                       {/* Add to cart button */}
-                      <button className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
+                      <button onClick={()=>addingToCart(item)} className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
                         <ShoppingCart /> Add to Cart
                       </button>
                     </div>

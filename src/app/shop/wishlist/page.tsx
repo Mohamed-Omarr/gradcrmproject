@@ -6,13 +6,13 @@ import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { useRouter } from "next/navigation";
-import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
 import {
   useDeleteWishlistItemMutation,
   useGetWishlistQuery,
 } from "../redux/services/wishlistApi";
 import Loader from "@/app/Loader";
 import { useAddToCartItemsMutation } from "../redux/services/cartApi";
+import { useGetCustomerInfoQuery } from "../redux/services/customerInfoApi";
 
 export default function WishlistPage() {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<number | null>(
@@ -42,9 +42,12 @@ export default function WishlistPage() {
 
   };
 
-  const customerInfo = useCustomerInfo();
+    const {
+    data: customerInfo,
+    isError: isCustomerInfoError,
+  } = useGetCustomerInfoQuery();
 
-  if (!customerInfo) {
+  if (isCustomerInfoError) {
     throw new Error("Failed Getting Customer Info");
   }
 
@@ -65,7 +68,7 @@ export default function WishlistPage() {
   const removeFromWishList = async (itemId: number) => {
     const item = {
       productId: itemId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
     };
     const res = await deleteFromWishList(item);
 

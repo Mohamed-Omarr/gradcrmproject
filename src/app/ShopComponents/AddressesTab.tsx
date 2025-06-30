@@ -11,9 +11,9 @@ import {
   useGetAddressQuery,
   useUpdateAddressMutation,
 } from "../shop/redux/services/addressApi";
-import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { useGetCustomerInfoQuery } from "../shop/redux/services/customerInfoApi";
 
 export default function AddressesTab() {
   const [editAddress, setEditAddress] = useState<number | null>(null);
@@ -28,9 +28,12 @@ export default function AddressesTab() {
     country: "",
   });
 
-  const customerInfo = useCustomerInfo();
+  const {
+    data: customerInfo,
+    isError: isCustomerInfoError,
+  } = useGetCustomerInfoQuery();
 
-  if (!customerInfo) {
+  if (isCustomerInfoError) {
     throw new Error("Failed fetching data");
   }
 
@@ -93,7 +96,7 @@ export default function AddressesTab() {
 
     const setAddressToDefault: setToDefaultAddress = {
       id: currentId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       default: true,
       previousDefaultAddressId: currentDefaultAddressId?.id,
     };
@@ -111,7 +114,7 @@ export default function AddressesTab() {
   const handleDeleteAddress = async (addressId: number) => {
     const addressToRemove: DeleteAddress = {
       id: addressId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
     };
 
     const res = await deletingAddress(addressToRemove);
@@ -129,7 +132,7 @@ export default function AddressesTab() {
     const isDefault = addresses?.all_Address.length === 0;
 
     const addressToAdd = {
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       addressType: newAddressData.type,
       street: newAddressData.street,
       city: newAddressData.city,

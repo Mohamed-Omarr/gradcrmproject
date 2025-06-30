@@ -6,8 +6,7 @@ import Footer from "../ShopComponents/Footer";
 import { Suspense } from "react";
 import Loader from "../Loader";
 import Providers from "../shop/redux/Providers";
-import { limitedCustomerInfo } from "@/ShopGlobalData/shartLimitedCustomerInfo";
-import { CustomerInfoProvider } from "@/hooks/crm/share-customer-context";
+import { ToastContainer } from "react-toastify";
 export const dynamic = "force-dynamic";
 
 
@@ -31,21 +30,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const customerInfo = await limitedCustomerInfo();
 
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased  py-5`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
         <Suspense fallback={<Loader />}>
-          <CustomerInfoProvider initialCustomerInfo={customerInfo}>
             <Providers>
               <Header />
               <main className="px-40">{children}</main>
               <Footer />
+              <ToastContainer />
             </Providers>
-          </CustomerInfoProvider>
         </Suspense>
       </body>
     </html>

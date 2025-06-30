@@ -2,8 +2,90 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
 import { Heart } from "lucide-react";
+import { IsCustomerAuthed } from "@/lib/utils";
+import { useGetCustomerInfoQuery } from "../shop/redux/services/customerInfoApi";
+import { useAddToCartItemsMutation } from "../shop/redux/services/cartApi";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
+import {
+  useAddToWishlistItemMutation,
+  useDeleteWishlistItemMutation,
+} from "../shop/redux/services/wishlistApi";
+import { useRouter } from "next/navigation";
+import { toastingInfo } from "@/lib/toast_message/toastingInfo";
 function Products({ product }: { product: ShopProduct[] }) {
-  
+  const isAuthed = IsCustomerAuthed();
+  const router = useRouter();
+
+  const {
+    data: customerInfo,
+    isError: isCustomerInfoError,
+  } = useGetCustomerInfoQuery(undefined, {
+    skip: !isAuthed,
+  });
+
+  if (isAuthed && isCustomerInfoError) {
+    throw new Error("Failed getting customer Info");
+  }
+
+  const [addToCart] = useAddToCartItemsMutation();
+  const [removeWishListItem] = useDeleteWishlistItemMutation();
+  const [addToWishlistItem] = useAddToWishlistItemMutation();
+
+  const addingToCart = async (item: ShopProduct) => {
+     if (!isAuthed) {
+      toastingInfo("Login",router)
+      return;
+    }
+
+    const product = {
+      productId: item.id,
+      quantity: item.qty,
+      size: item.sizes[0].code,
+      color: item.colors[0].code,
+    };
+
+    const res = await addToCart(product);
+
+    if (res.data) {
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
+    }
+  };
+
+  const addingToWishlist = async (itemId: number) => {
+    if (!isAuthed) {
+      toastingInfo("Login",router)
+      return;
+    }
+    const item = {
+      productId: itemId,
+      customerId: customerInfo?.user.id,
+    };
+
+    const res = await addToWishlistItem(item);
+
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
+  };
+
+  const removeFromWishList = async (itemId: number) => {
+    const item = {
+      productId: itemId,
+      customerId: customerInfo?.user.id,
+    };
+    const res = await removeWishListItem(item);
+    if (res.data) {
+      toastingSuccess(res.data.message, router.refresh);
+    } else {
+      toastingError(res.error);
+    }
+  };
+
   if (!product || product.length === 0) {
     return <div>No product available</div>;
   }
@@ -21,10 +103,24 @@ function Products({ product }: { product: ShopProduct[] }) {
             className="group relative rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-1 max-w-[400px] duration-300"
           >
             {/* Wishlist button */}
-            <div className="absolute  top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button  className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors">
-                <Heart />
-              </button>
+            <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+              {item.wishlist.some(
+                (i) => i.customerId === customerInfo?.user.id
+              ) ? (
+                <button
+                  onClick={() => removeFromWishList(item.id)}
+                  className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors"
+                >
+                  <Heart fill="red" className="h-5 w-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => addingToWishlist(item.id)}
+                  className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors"
+                >
+                  <Heart fill="white" className="h-5 w-5" />
+                </button>
+              )}
             </div>
 
             {/* Product image */}
@@ -85,7 +181,10 @@ function Products({ product }: { product: ShopProduct[] }) {
               </div>
 
               {/* Add to cart button */}
-              <button className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
+              <button
+                onClick={() => addingToCart(item)}
+                className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
                 <ShoppingCart /> Add to Cart
               </button>
             </div>

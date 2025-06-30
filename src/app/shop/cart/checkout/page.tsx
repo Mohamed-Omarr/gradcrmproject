@@ -14,9 +14,9 @@ import {
 import Loader from "@/app/Loader";
 import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
-import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
 import { useGetCardQuery } from "../../redux/services/cardApi";
 import axiosClient from "@/lib/axios/axiosClient";
+import { useGetCustomerInfoQuery } from "../../redux/services/customerInfoApi";
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
@@ -46,8 +46,14 @@ export default function CheckoutPage() {
     undefined
   );
 
-  const customerInfo = useCustomerInfo();
+      const {
+    data: customerInfo,
+    isError: isCustomerInfoError,
+  } = useGetCustomerInfoQuery();
 
+  if (isCustomerInfoError) {
+    throw new Error("Failed Getting Customer Info");
+  }
   const {
     data: savedAddresses,
     isLoading: isLoadingGetAddress,
@@ -69,11 +75,7 @@ export default function CheckoutPage() {
   }, [isSuccessGetAddress, savedAddresses]);
 
   if (isError) {
-    return "faild to get address";
-  }
-
-  if (!customerInfo) {
-    return "faild to get customerifnos ";
+    return "failed to get address";
   }
 
   if (!summary) {
@@ -110,7 +112,7 @@ export default function CheckoutPage() {
     const isDefault = savedAddresses?.all_Address.length === 0;
 
     const addressToAdd = {
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       addressType: newAddressData.type,
       street: newAddressData.street,
       city: newAddressData.city,
@@ -160,7 +162,7 @@ export default function CheckoutPage() {
   const handlePaymentSuccess = async (paymentIntent) => {
     const item:CreateOrderPayload = {
       stripePaymentIntentId: paymentIntent,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       total: Math.round(total * 100), // in cents
       currency: "usd",
       orderItem: summary.cartItems.map((item) => ({

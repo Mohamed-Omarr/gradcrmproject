@@ -13,46 +13,13 @@ import Loader from "@/app/Loader";
 import { useRouter } from "next/navigation";
 import { setSummary } from "../redux/features/order_summary_feature/orderSlice";
 import { useAppDispatch } from "../redux/hooks/hooks";
-// Recommended products
-const recommendedProducts = [
-  {
-    id: 3,
-    name: "Casual Chino Pants",
-    price: 59.99,
-    image: "https://picsum.photos/seed/pants/400",
-    rating: 4.2,
-    isNew: true,
-  },
-  {
-    id: 4,
-    name: "Knit Sweater",
-    price: 49.99,
-    image: "https://picsum.photos/seed/sweater/400",
-    rating: 4.0,
-  },
-  {
-    id: 5,
-    name: "Classic Oxford Shirt",
-    price: 45.99,
-    image: "https://picsum.photos/seed/oxford/400",
-    rating: 4.7,
-    onSale: true,
-    originalPrice: 65.99,
-  },
-  {
-    id: 6,
-    name: "Slim Fit Jeans",
-    price: 69.99,
-    image: "https://picsum.photos/seed/jeans/400",
-    rating: 4.9,
-  },
-];
+
 
 export default function CartPage() {
-  const [promoCode, setPromoCode] = useState("");
+  // const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
-  const [promoError, setPromoError] = useState("");
-  const [promoSuccess, setPromoSuccess] = useState("");
+  // const [promoError, setPromoError] = useState("");
+  // const [promoSuccess, setPromoSuccess] = useState("");
   const [shippingMethod, setShippingMethod] = useState("standard");
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -182,7 +149,7 @@ export default function CartPage() {
                 Your cart is empty
               </h2>
               <p className="text-gray-500 mb-6">
-                Looks like you haven't added any items to your cart yet.
+                Looks like you have not added any items to your cart yet.
               </p>
               <Link
                 href={'/shop/products'}

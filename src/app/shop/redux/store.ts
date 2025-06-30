@@ -1,5 +1,6 @@
 import {configureStore} from "@reduxjs/toolkit"
 import {setupListeners} from "@reduxjs/toolkit/query"
+import { customerInfoApi } from "./services/customerInfoApi";
 import { categoryApi } from "./services/categoryApi";
 import { productApi } from "./services/productApi";
 import { wishlistApi } from "./services/wishlistApi";
@@ -11,10 +12,11 @@ import { orderApi } from "./services/orderApi";
 import orderReducer from "./features/order_summary_feature/orderSlice"
 
 // Define your API middleware array
-const apiSection = [categoryApi.middleware,productApi.middleware ,wishlistApi.middleware,cartApi.middleware ,rateApi.middleware ,addressApi.middleware,cardApi.middleware,orderApi.middleware];
+const apiSection = [customerInfoApi.middleware ,categoryApi.middleware,productApi.middleware ,wishlistApi.middleware,cartApi.middleware ,rateApi.middleware ,addressApi.middleware,cardApi.middleware,orderApi.middleware];
 
 export const store = configureStore({
     reducer: {
+    [customerInfoApi.reducerPath]: customerInfoApi.reducer,
     order: orderReducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [productApi.reducerPath]: productApi.reducer,

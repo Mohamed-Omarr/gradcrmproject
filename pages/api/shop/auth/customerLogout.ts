@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { frequentLogout } from "../../../../controllers/crm/auth/authController";
-import { customer_logout } from "../../../../controllers/shop/auth/CustomerAuthController";
+import { customer_logout, frequentLogout } from "../../../../controllers/shop/auth/CustomerAuthController";
 
 export default async function handleLogout(req: NextApiRequest, res: NextApiResponse) {
 

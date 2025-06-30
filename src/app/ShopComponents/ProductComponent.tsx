@@ -18,7 +18,6 @@ import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import Loader from "../Loader";
 import { useRouter } from "next/navigation";
-import { useCustomerInfo } from "@/hooks/crm/share-customer-context";
 import { useAddToCartItemsMutation } from "../shop/redux/services/cartApi";
 import {
   useAddToWishlistItemMutation,
@@ -29,6 +28,9 @@ import {
   useDeleteReviewMutation,
   useUpdateReviewMutation,
 } from "../shop/redux/services/rateApi";
+import { useGetCustomerInfoQuery } from "../shop/redux/services/customerInfoApi";
+import { IsCustomerAuthed } from "@/lib/utils";
+import { toastingInfo } from "@/lib/toast_message/toastingInfo";
 
 type ReviewProduct = {
   score: number;
@@ -36,16 +38,22 @@ type ReviewProduct = {
 };
 
 export default function ProductIdPage({ product }: { product: ShopProduct }) {
-  const customerInfo = useCustomerInfo();
+  const isAuthed = IsCustomerAuthed();
+  const router = useRouter();
 
-  if (!customerInfo) {
+  const { data: customerInfo, isError: isCustomerInfoError } =
+    useGetCustomerInfoQuery(undefined, {
+      skip: !isAuthed,
+    });
+
+  if (isAuthed && isCustomerInfoError) {
     throw new Error("Failed getting customer Info");
   }
 
   const [addToCart] = useAddToCartItemsMutation();
 
   const customerCommentExits = product.ratings.find(
-    (comment) => comment.customerId === customerInfo.id
+    (comment) => comment.customerId === customerInfo?.user.id
   );
 
   const mainImage = product.thumbnail;
@@ -64,9 +72,8 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     current: 1,
   });
 
-
   const isWishListed = product.wishlist.some(
-    (i) => i.productId === product.id && i.customerId === customerInfo.id
+    (i) => i.productId === product.id && i.customerId === customerInfo?.user.id
   );
 
   const [reviewModalOpen, setReviewModalOpen] = useState<boolean>(false);
@@ -120,19 +127,18 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     acc[score] = product.ratings.filter((r) => r.score === score).length;
     return acc;
   }, {} as Record<number, number>);
-  const router = useRouter();
 
   // functions send to api
-const [creatingReview, { isLoading: isCreating }] = useCreateReviewMutation();
-const [updatingReview, { isLoading: isUpdating }] = useUpdateReviewMutation();
-const [deletingReview, { isLoading: isDeleting }] = useDeleteReviewMutation();
+  const [creatingReview, { isLoading: isCreating }] = useCreateReviewMutation();
+  const [updatingReview, { isLoading: isUpdating }] = useUpdateReviewMutation();
+  const [deletingReview, { isLoading: isDeleting }] = useDeleteReviewMutation();
 
-const isAnyLoading = isCreating || isUpdating || isDeleting;
+  const isAnyLoading = isCreating || isUpdating || isDeleting;
 
   const submitReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const item = {
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       productId: product.id,
       score: newReview.score,
       review: newReview.review,
@@ -151,14 +157,14 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
     e.preventDefault();
     const item = {
       id: editingReviewId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       productId: product.id,
       score: editingReview.score,
       review: editingReview.review,
     };
 
     const updating = await updatingReview(item);
-    
+
     if (updating.data) {
       router.refresh();
       handleRestNewReview();
@@ -171,7 +177,7 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
   const deleteReview = async () => {
     const item = {
       id: deleteReviewId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
       productId: product.id,
     };
 
@@ -187,11 +193,16 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
   };
 
   const addingToCart = async (item: ShopProduct) => {
+    if (!isAuthed) {
+      toastingInfo("Login", router);
+      return;
+    }
+
     const product = {
       productId: item.id,
       quantity: quantity.current,
-      size:selectedSize,
-      color:selectedColor
+      size: selectedSize,
+      color: selectedColor,
     };
 
     const res = await addToCart(product);
@@ -204,9 +215,14 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
   };
 
   const addingToWishlist = async (itemId: number) => {
+    if (!isAuthed) {
+      toastingInfo("Login", router);
+      return;
+    }
+
     const item = {
       productId: itemId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
     };
 
     const res = await addToWishlistItem(item);
@@ -221,7 +237,7 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
   const removeFromWishList = async (itemId: number) => {
     const item = {
       productId: itemId,
-      customerId: customerInfo.id,
+      customerId: customerInfo?.user.id,
     };
     const res = await removeWishListItem(item);
     if (res.data) {
@@ -233,7 +249,7 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
 
   // helper functions
   const handleEditReview = (selectedReview: Rate) => {
-    if (selectedReview.customerId !== customerInfo.id) return;
+    if (selectedReview.customerId !== customerInfo?.user.id) return;
     setEditingReview({
       score: selectedReview.score,
       review: selectedReview.review,
@@ -500,7 +516,13 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
               {!customerCommentExits ? (
                 <button
                   disabled={isAnyLoading}
-                  onClick={() => setReviewModalOpen(true)}
+                  onClick={() => {
+                    if (!isAuthed) {
+                      toastingInfo("Please login to write a review", router);
+                      return;
+                    }
+                    setReviewModalOpen(true);
+                  }}
                   className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black transition-colors"
                 >
                   Write a Review
@@ -508,10 +530,14 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
               ) : (
                 <button
                   disabled={isAnyLoading}
-                  onClick={() => (
-                    setEditReviewModalOpen(true),
-                    setEditingReviewId(customerCommentExits.id)
-                  )}
+                  onClick={() => {
+                    if (!isAuthed) {
+                      toastingInfo("Please login to edit your review", router);
+                      return;
+                    }
+                    setEditReviewModalOpen(true);
+                    setEditingReviewId(customerCommentExits.id);
+                  }}
                   className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black transition-colors"
                 >
                   Edit The Review
@@ -590,7 +616,7 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
                     .slice(moreComments.initial, moreComments.more)
                     .map((reviews, i) => (
                       <div key={i} className="border-b border-gray-200 pb-6">
-                        {customerInfo.id === reviews.customerId &&
+                        {customerInfo?.user.id === reviews.customerId &&
                         editingReviewId === reviews.id &&
                         isEditingInCommentSection ? (
                           // Edit review form
@@ -702,7 +728,7 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
                                 </span>
                               </div>
 
-                              {customerInfo.id === reviews.customerId && (
+                              {customerInfo?.user.id === reviews.customerId && (
                                 <div className="flex space-x-2">
                                   <button
                                     onClick={() => handleEditReview(reviews)}
@@ -794,14 +820,14 @@ const isAnyLoading = isCreating || isUpdating || isDeleting;
           </div>
 
           {/* Related Products */}
-          <div className="mt-16">
+          {/* <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               You may also like
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {/* <RelatedProducts categoryId={product.category.id.toString()} /> */}
+              <RelatedProducts categoryId={product.category.id.toString()} />
             </div>
-          </div>
+          </div> */}
 
           {/* Review Modal */}
 
