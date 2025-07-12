@@ -46,10 +46,6 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
       skip: !isAuthed,
     });
 
-  if (isAuthed && isCustomerInfoError) {
-    throw new Error("Failed getting customer Info");
-  }
-
   const [addToCart] = useAddToCartItemsMutation();
 
   const customerCommentExits = product.ratings.find(
@@ -129,48 +125,69 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
   }, {} as Record<number, number>);
 
   // functions send to api
-  const [creatingReview, { isLoading: isCreating }] = useCreateReviewMutation();
-  const [updatingReview, { isLoading: isUpdating }] = useUpdateReviewMutation();
-  const [deletingReview, { isLoading: isDeleting }] = useDeleteReviewMutation();
+  const [creatingReview, { isLoading: isCreatingReview }] =
+    useCreateReviewMutation();
+  const [updatingReview, { isLoading: isUpdatingReview }] =
+    useUpdateReviewMutation();
+  const [deletingReview, { isLoading: isDeletingReview }] =
+    useDeleteReviewMutation();
 
-  const isAnyLoading = isCreating || isUpdating || isDeleting;
+  const isAnyLoading = isCreatingReview || isUpdatingReview || isDeletingReview;
 
   const submitReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const item = {
-      customerId: customerInfo?.user.id,
-      productId: product.id,
-      score: newReview.score,
-      review: newReview.review,
-    };
-    const creating = await creatingReview(item);
-    if (creating.data) {
-      router.refresh();
-      handleRestNewReview();
-      toastingSuccess(creating.data.message);
-    } else {
-      toastingError(creating.error);
+
+    try {
+      const item = {
+        customerId: customerInfo?.user.id,
+        productId: product.id,
+        score: newReview.score,
+        review: newReview.review,
+      };
+
+      const creating = await creatingReview(item);
+
+      if (creating.data) {
+        router.refresh();
+        handleRestNewReview();
+        toastingSuccess(creating.data.message);
+      } else {
+        toastingError(
+          creating.error || "Something went wrong while submitting your review."
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      toastingError("Something went wrong while submitting your review.");
     }
   };
 
   const updateReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const item = {
-      id: editingReviewId,
-      customerId: customerInfo?.user.id,
-      productId: product.id,
-      score: editingReview.score,
-      review: editingReview.review,
-    };
 
-    const updating = await updatingReview(item);
+    try {
+      const item = {
+        id: editingReviewId,
+        customerId: customerInfo?.user.id,
+        productId: product.id,
+        score: editingReview.score,
+        review: editingReview.review,
+      };
 
-    if (updating.data) {
-      router.refresh();
-      handleRestNewReview();
-      toastingSuccess(updating.data.message);
-    } else {
-      toastingError(updating.error);
+      const updating = await updatingReview(item);
+
+      if (updating.data) {
+        router.refresh();
+        handleRestEditReview();
+        toastingSuccess(updating.data.message);
+      } else {
+        toastingError(
+          updating.error || "Something went wrong while updating your review."
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      toastingError("Something went wrong while updating your review.");
     }
   };
 
@@ -297,6 +314,11 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     }
   }, [customerCommentExits]);
 
+  if (isCustomerInfoError) {
+    toastingInfo("Login", router);
+    return;
+  }
+
   return (
     <div className="bg-white">
       {product && (
@@ -386,10 +408,10 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Color</h3>
                   <div className="flex items-center space-x-3 mt-2">
-                    {product.colors.map((color) => (
+                    {product.colors.map((color, i) => (
                       <button
                         style={{ background: color.code }}
-                        key={color.id}
+                        key={i}
                         className={`relative w-8 h-8 rounded-full  ${
                           selectedColor === color.code
                             ? "ring-2 ring-offset-2 ring-gray-800"
@@ -412,9 +434,9 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                     </button>
                   </div>
                   <div className="grid grid-cols-5 gap-2 mt-2">
-                    {product.sizes.map((size) => (
+                    {product.sizes.map((size, i) => (
                       <button
-                        key={size.id}
+                        key={i}
                         className={`py-2 px-3 text-sm font-medium rounded-md border ${
                           selectedSize === size.code
                             ? "bg-gray-900 text-white border-gray-900"
@@ -451,6 +473,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                       {quantity.current}
                     </span>
                     <button
+                      disabled={quantity.current === product.qty}
                       onClick={() =>
                         setQuantity((prev) => ({
                           ...prev,
@@ -612,171 +635,182 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
 
                 {/* Review List */}
                 <div className="space-y-6">
-                  {comments
-                    .slice(moreComments.initial, moreComments.more)
-                    .map((reviews, i) => (
-                      <div key={i} className="border-b border-gray-200 pb-6">
-                        {customerInfo?.user.id === reviews.customerId &&
-                        editingReviewId === reviews.id &&
-                        isEditingInCommentSection ? (
-                          // Edit review form
-                          <form onSubmit={updateReview} className="space-y-4">
-                            <div className="flex justify-between">
-                              <h3 className="text-sm font-medium text-gray-900">
-                                Edit Your Review
-                              </h3>
-                              <button
-                                type="button"
-                                onClick={() => handleRestEditReview()}
-                                className="text-gray-400 hover:text-gray-500"
-                              >
-                                <X className="h-5 w-5" />
-                              </button>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Rating
-                              </label>
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <button
-                                    key={star}
-                                    type="button"
-                                    onClick={() =>
-                                      setEditingReview({
-                                        ...editingReview,
-                                        score: star,
-                                      })
-                                    }
-                                    className="p-1 focus:outline-none"
-                                  >
-                                    <Star
-                                      className={`h-6 w-6 ${
-                                        star <= editingReview.score
-                                          ? "text-yellow-400 fill-yellow-400"
-                                          : "text-gray-300"
-                                      }`}
-                                    />
-                                  </button>
-                                ))}
+                  {comments.length === 0 ? (
+                    <div className="flex justify-center items-center h-32">
+                      <p className="text-gray-500 text-sm">No reviews yet.</p>
+                    </div>
+                  ) : (
+                    comments
+                      .slice(moreComments.initial, moreComments.more)
+                      .map((reviews, i) => (
+                        <div key={i} className="border-b border-gray-200 pb-6">
+                          {customerInfo?.user.id === reviews.customerId &&
+                          editingReviewId === reviews.id &&
+                          isEditingInCommentSection ? (
+                            // Edit review form
+                            <form onSubmit={updateReview} className="space-y-4">
+                              <div className="flex justify-between">
+                                <h3 className="text-sm font-medium text-gray-900">
+                                  Edit Your Review
+                                </h3>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestEditReview()}
+                                  className="text-gray-400 hover:text-gray-500"
+                                >
+                                  <X className="h-5 w-5" />
+                                </button>
                               </div>
-                            </div>
 
-                            <div>
-                              <label
-                                htmlFor="edit-review-comment"
-                                className="block text-sm font-medium text-gray-700 mb-2"
-                              >
-                                Your Review
-                              </label>
-                              <textarea
-                                id="edit-review-comment"
-                                rows={4}
-                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                                value={editingReview.review}
-                                onChange={(e) =>
-                                  setEditingReview({
-                                    ...editingReview,
-                                    review: e.target.value,
-                                  })
-                                }
-                                required
-                              ></textarea>
-                            </div>
-
-                            <div className="flex justify-end space-x-3">
-                              <button
-                                type="button"
-                                onClick={() => handleRestEditReview()}
-                                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                type="submit"
-                                disabled={disableBtn}
-                                className="px-3 py-1.5 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black"
-                              >
-                                Update Review
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          // Review display
-                          <>
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center">
-                                <div className="flex mr-2">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-4 w-4 ${
-                                        i < reviews.score
-                                          ? "text-yellow-400 fill-yellow-400"
-                                          : "text-gray-300"
-                                      }`}
-                                    />
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Rating
+                                </label>
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      type="button"
+                                      onClick={() =>
+                                        setEditingReview({
+                                          ...editingReview,
+                                          score: star,
+                                        })
+                                      }
+                                      className="p-1 focus:outline-none"
+                                    >
+                                      <Star
+                                        className={`h-6 w-6 ${
+                                          star <= editingReview.score
+                                            ? "text-yellow-400 fill-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    </button>
                                   ))}
                                 </div>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {reviews.customer.name}
-                                </span>
-                                <span className="mx-2 text-gray-300">•</span>
-                                <span className="text-sm text-gray-500">
-                                  {new Date(reviews.createdAt).toLocaleString()}
-                                </span>
                               </div>
 
-                              {customerInfo?.user.id === reviews.customerId && (
-                                <div className="flex space-x-2">
-                                  <button
-                                    onClick={() => handleEditReview(reviews)}
-                                    className="text-gray-400 hover:text-gray-600 p-1"
-                                    aria-label="Edit review"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      setDeleteReviewId(reviews.id)
-                                    }
-                                    className="text-gray-400 hover:text-red-500 p-1"
-                                    aria-label="Delete review"
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                  </button>
+                              <div>
+                                <label
+                                  htmlFor="edit-review-comment"
+                                  className="block text-sm font-medium text-gray-700 mb-2"
+                                >
+                                  Your Review
+                                </label>
+                                <textarea
+                                  id="edit-review-comment"
+                                  rows={4}
+                                  className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                                  value={editingReview.review}
+                                  onChange={(e) =>
+                                    setEditingReview({
+                                      ...editingReview,
+                                      review: e.target.value,
+                                    })
+                                  }
+                                  required
+                                ></textarea>
+                              </div>
+
+                              <div className="flex justify-end space-x-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestEditReview()}
+                                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="submit"
+                                  disabled={disableBtn}
+                                  className="px-3 py-1.5 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black"
+                                >
+                                  Update Review
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            // Review display
+                            <>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                  <div className="flex mr-2">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-4 w-4 ${
+                                          i < reviews.score
+                                            ? "text-yellow-400 fill-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {reviews.customer.name}
+                                  </span>
+                                  <span className="mx-2 text-gray-300">•</span>
+                                  <span className="text-sm text-gray-500">
+                                    {new Date(
+                                      reviews.createdAt
+                                    ).toLocaleString()}
+                                  </span>
+                                </div>
+
+                                {customerInfo?.user.id ===
+                                  reviews.customerId && (
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => handleEditReview(reviews)}
+                                      className="text-gray-400 hover:text-gray-600 p-1"
+                                      aria-label="Edit review"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        setDeleteReviewId(reviews.id)
+                                      }
+                                      className="text-gray-400 hover:text-red-500 p-1"
+                                      aria-label="Delete review"
+                                    >
+                                      <Trash className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-gray-600">{reviews.review}</p>
+
+                              {/* Delete confirmation */}
+                              {deleteReviewId === reviews.id && (
+                                <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-md">
+                                  <p className="text-sm text-red-800 mb-2">
+                                    Are you sure you want to delete this review?
+                                  </p>
+                                  <div className="flex justify-end space-x-2">
+                                    <button
+                                      onClick={() =>
+                                        setDeleteReviewId(undefined)
+                                      }
+                                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => deleteReview()}
+                                      className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
                                 </div>
                               )}
-                            </div>
-                            <p className="text-gray-600">{reviews.review}</p>
-
-                            {/* Delete confirmation */}
-                            {deleteReviewId === reviews.id && (
-                              <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-md">
-                                <p className="text-sm text-red-800 mb-2">
-                                  Are you sure you want to delete this review?
-                                </p>
-                                <div className="flex justify-end space-x-2">
-                                  <button
-                                    onClick={() => setDeleteReviewId(undefined)}
-                                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={() => deleteReview()}
-                                    className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    ))}
+                            </>
+                          )}
+                        </div>
+                      ))
+                  )}
                 </div>
 
                 {/* Load More Reviews Button */}
@@ -851,6 +885,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                         Write a Review
                       </h3>
                       <button
+                        disabled={isCreatingReview}
                         onClick={() => handleRestNewReview()}
                         className="text-gray-400 hover:text-gray-500"
                       >
@@ -910,6 +945,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
 
                       <div className="mt-5 sm:mt-6 flex justify-end space-x-3">
                         <button
+                          disabled={isCreatingReview}
                           type="button"
                           className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                           onClick={() => handleRestNewReview()}
@@ -918,9 +954,10 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                         </button>
                         <button
                           type="submit"
+                          disabled={isCreatingReview}
                           className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black"
                         >
-                          Submit Review
+                          {isCreatingReview ? "Submitting..." : "Submit Review"}
                         </button>
                       </div>
                     </form>
@@ -950,6 +987,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                         Write a Review
                       </h3>
                       <button
+                        disabled={isUpdatingReview}
                         onClick={() => handleRestEditReview()}
                         className="text-gray-400 hover:text-gray-500"
                       >
@@ -1013,6 +1051,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
 
                       <div className="mt-5 sm:mt-6 flex justify-end space-x-3">
                         <button
+                          disabled={isUpdatingReview}
                           type="button"
                           className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                           onClick={() => handleRestEditReview()}
@@ -1021,10 +1060,10 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                         </button>
                         <button
                           type="submit"
-                          disabled={disableBtn}
+                          disabled={isUpdatingReview}
                           className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-black"
                         >
-                          Update Review
+                          {isUpdatingReview ? "Updating..." : "Update Review"}
                         </button>
                       </div>
                     </form>

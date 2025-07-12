@@ -21,6 +21,7 @@ export const shopRefreshingToken = async (req:NextApiRequest , res:NextApiRespon
         }
 
         const refresh_token_key = process.env.REFRESH_TOKEN_KEY; // Keep this secure
+        
         const access_token_key  = process.env.ACCESS_TOKEN_KEY; // Keep this secure
 
         const decoded = jwt.verify(incomingRefreshToken,refresh_token_key) as {id:string};
@@ -40,7 +41,7 @@ export const shopRefreshingToken = async (req:NextApiRequest , res:NextApiRespon
 
         const newAccessToken = jwt.sign({id:user.id}, access_token_key, { expiresIn: "15m" });
 
-        return res.status(200).json({ accessToken: newAccessToken });
+        return res.status(200).json({ AccessToken: newAccessToken });
 
     }catch(error) {
         return res.status(401).json({error:`Failed to refresh token:${error}`})

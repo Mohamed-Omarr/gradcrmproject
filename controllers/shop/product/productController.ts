@@ -19,12 +19,12 @@ export const getProduct = async ( res:NextApiResponse) => {
 
 export const getProductById = async ( res:NextApiResponse,queryValue:string) => {
     try {
-                const get_products = await get_product_by_id(queryValue);
+                const get_product = await get_product_by_id(queryValue);
     
-                if(get_products.success){
-                    return res.status(200).json({message:" Fetched all products successfully ",product:get_products.product})
+                if(get_product.success){
+                    return res.status(200).json({message:" Fetched all products successfully ",product:get_product.product})
                 } else {
-                    return res.status(500).json({error:get_products.error})
+                    return res.status(500).json({error:get_product.error})
                 }
         } catch (error) {
             return res.status(500).json({error:`Internal Server Error:${error}`})

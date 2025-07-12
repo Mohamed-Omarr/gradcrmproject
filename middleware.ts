@@ -66,7 +66,7 @@ export async function middleware(req:NextRequest) {
     const authRoutes = ["/auth/login", "/auth/register"];
 
     const protectedRoutesPrefixes = [
-      "/shop/profile",
+      "/settings/profile",
       "/shop/cart",
       "/shop/wishlist",
     ];

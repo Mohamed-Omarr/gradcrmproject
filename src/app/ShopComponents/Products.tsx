@@ -13,9 +13,11 @@ import {
 } from "../shop/redux/services/wishlistApi";
 import { useRouter } from "next/navigation";
 import { toastingInfo } from "@/lib/toast_message/toastingInfo";
+
 function Products({ product }: { product: ShopProduct[] }) {
   const isAuthed = IsCustomerAuthed();
   const router = useRouter();
+
 
   const {
     data: customerInfo,
@@ -23,10 +25,6 @@ function Products({ product }: { product: ShopProduct[] }) {
   } = useGetCustomerInfoQuery(undefined, {
     skip: !isAuthed,
   });
-
-  if (isAuthed && isCustomerInfoError) {
-    throw new Error("Failed getting customer Info");
-  }
 
   const [addToCart] = useAddToCartItemsMutation();
   const [removeWishListItem] = useDeleteWishlistItemMutation();
@@ -67,13 +65,18 @@ function Products({ product }: { product: ShopProduct[] }) {
     const res = await addToWishlistItem(item);
 
     if (res.data) {
-      toastingSuccess(res.data.message, router.refresh);
+      toastingSuccess(res.data.message);
+      router.refresh();
     } else {
       toastingError(res.error);
     }
   };
 
   const removeFromWishList = async (itemId: number) => {
+    if (!isAuthed) {
+      toastingInfo("Login",router)
+      return;
+    }
     const item = {
       productId: itemId,
       customerId: customerInfo?.user.id,
@@ -86,9 +89,16 @@ function Products({ product }: { product: ShopProduct[] }) {
     }
   };
 
+
   if (!product || product.length === 0) {
     return <div>No product available</div>;
   }
+
+  if (isCustomerInfoError) {
+    toastingInfo("Login", router);
+    return;
+  }
+
 
   return (
     <>
@@ -124,7 +134,7 @@ function Products({ product }: { product: ShopProduct[] }) {
             </div>
 
             {/* Product image */}
-            <Link href={`/product`}>
+            <Link href={`/shop/product/${item.id}`} >
               <div className="bg-gray-50">
                 <Image
                   src={item.thumbnail}

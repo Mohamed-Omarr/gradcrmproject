@@ -52,8 +52,18 @@ export const get_product_by_id = async (productId:string) => {
                     price:true,
                     qty:true,
                     thumbnail:true,
-                    colors:true,
-                    sizes:true,
+                    colors:{
+                        select:{
+                            code:true,
+                            name:true,
+                        }
+                    },
+                    sizes:{
+                            select:{
+                            code:true,
+                            name:true,
+                        }
+                    },
                     category:{
                         select:{
                             name:true,

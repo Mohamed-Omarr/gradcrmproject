@@ -40,7 +40,7 @@ function Login() {
     try {
       const res = await axios.post("/api/shop/auth/customerLogin", data);
       localStorage.setItem("AccessToken", res.data.accessToken);
-      toastingSuccess(res, () => redirect("/home"));
+      toastingSuccess(res.data.message, () => redirect("/home"));
     } catch (error) {
       toastingError(error);
     } finally {

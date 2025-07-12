@@ -1,7 +1,8 @@
 import { Search, ShoppingCart, User } from "lucide-react";
 import Image from "next/image";
 import React from "react";
-import CarImage from "../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg";
+import Tshirt from "../../../public/00722745420-e1.jpg";
+
 import Link from "next/link";
 
 function Header() {
@@ -10,7 +11,7 @@ function Header() {
       <div className="px-40 flex h-16 items-center">
         <Link href="/home" className="mr-6 flex items-center space-x-2">
           <Image
-            src={CarImage}
+            src={Tshirt}
             alt="Logo"
             width={30}
             height={30}
@@ -41,15 +42,18 @@ function Header() {
               className="w-full rounded-md border border-gray-200 py-2 pl-8 pr-4 focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300 md:w-[300px] lg:w-[300px]"
             />
           </div>
-          <button className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+          <Link href="/shop/cart" className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
             <ShoppingCart className="h-5 w-5" />
             {/* <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-900 text-[10px] font-medium text-white flex items-center justify-center">
               3
             </span> */}
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+          </Link>
+          <Link
+            href="/shop/profile"
+            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+          >
             <User className="h-5 w-5" />
-          </button>
+          </Link>
         </div>
       </div>
     </header>

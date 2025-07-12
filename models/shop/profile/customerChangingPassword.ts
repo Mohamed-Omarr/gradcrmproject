@@ -8,7 +8,6 @@ export const customerChangingPassword = async(customerData:update_password,hashe
             prisma.customer.update({
                 where:{
                     id:customerData.id,
-                    email:customerData.email
                 },
                 data:{
                     password:hashedPassword,

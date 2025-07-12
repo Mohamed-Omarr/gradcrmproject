@@ -1,14 +1,8 @@
 "use client";
-
-import Image from "next/image";
 import { CreditCard, LogOut, MapPin, Package, User } from "lucide-react";
 
 interface ProfileSidebarProps {
-  userData: {
-    name: string;
-    email: string;
-    image: string;
-  };
+  userData: customerData,
   activeTab: string;
   onTabChange: (tab: string) => void;
   hasUnsavedChanges?: boolean;

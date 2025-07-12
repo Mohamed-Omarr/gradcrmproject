@@ -1,10 +1,8 @@
 import prisma from "../../../_lib_backend/prismaClient/PrismaClient"
-
-
+import fs from 'fs/promises';
 export const addProducts = async (data:Product,thumbnailImage:string) => {
     
     try{
-
         const addedProduct = await prisma.product.create({
             data:{
                 name:data.name,
@@ -25,7 +23,7 @@ export const addProducts = async (data:Product,thumbnailImage:string) => {
         })
         return {success:true,createdNewProduct:addedProduct}
     }catch(error){
-        return {success:false,error: `Failed to create new stock ${error}`}
+        return {success:false,error: `Failed to create new product ${error}`}
     }
 }
 

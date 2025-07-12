@@ -5,11 +5,13 @@ import prisma from "../../../_lib_backend/prismaClient/PrismaClient";
 import { decodeToken } from "../../../_lib_backend/token/decodeToken";
 import { zodValidatorHelper } from "../../../_lib_backend/validation/zodHelper/zodValidatorHelper";
 import { normalizeFormFields } from "../../../_lib_backend/validation/zodHelper/normalized";
-import { parseForm } from "../../../_lib_backend/uploaderHelper/handleUploader";
+import { supabase } from "@/lib/supabase/supabase";
+import { parseFormInMemory } from "../../../_lib_backend/uploaderHelper/handleUploader";
+import fs from 'fs/promises';
 
 export const createProduct = async (req:NextApiRequest , res:NextApiResponse) => {
     try {
-        const { fields, files } = await parseForm(req);
+        const { fields, files } = await parseFormInMemory(req);
 
         const cleanData = normalizeFormFields(fields)
 
@@ -29,8 +31,40 @@ export const createProduct = async (req:NextApiRequest , res:NextApiResponse) =>
                 return res.status(400).json({error:"Failed the selected category Id Not Found"})
             }
 
-            
-            const newProduct = await addProducts(data,files.thumbnail);
+                // Read file buffer from uploaded file
+    const thumbnailFileRaw = files.thumbnail;
+const thumbnailFile = Array.isArray(thumbnailFileRaw) ? thumbnailFileRaw[0] : thumbnailFileRaw;
+
+if (!thumbnailFile) {
+  return res.status(400).json({ error: "Thumbnail file is required" });
+}
+
+
+if (!thumbnailFile) {
+  return res.status(400).json({ error: "Thumbnail file is required" });
+}
+
+const fileBuffer = await fs.readFile(thumbnailFile.filepath);
+
+const fileName = `products/${Date.now()}_${thumbnailFile.originalFilename?.replace(/\s+/g, '_')}`;
+
+const { data: uploadData, error: uploadError } = await supabase.storage
+  .from('products')
+  .upload(fileName, fileBuffer, {
+    contentType: thumbnailFile.mimetype,
+    upsert: false,
+  });
+
+if (uploadError) {
+  console.error("Supabase upload error:", uploadError);
+  return res.status(500).json({ error: "Failed to upload image to storage" });
+}
+
+const { data: publicUrl } = supabase.storage
+  .from('products')
+  .getPublicUrl(fileName);
+
+const newProduct = await addProducts(data, publicUrl.publicUrl);
 
             if(newProduct.success){
                 return res.status(201).json({message:"created product successfully",createdProduct:newProduct.createdNewProduct})

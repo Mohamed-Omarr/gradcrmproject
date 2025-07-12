@@ -5,11 +5,12 @@ import { getCustomerInfoDB } from "../../models/shop/auth/getCustomerInfoModel";
 
 export const verifyToken = async (token:string,userType:string) => {
     try {
-        if (!process.env.REFRESH_TOKEN_KEY) {
+        if (!process.env.ACCESS_TOKEN_KEY) {
             throw new Error ("Missing Secret JWT");
         }
         
-        const verifiedToken = jwt.verify(token,process.env.REFRESH_TOKEN_KEY) as {id:string};
+        const verifiedToken = jwt.verify(token,process.env.ACCESS_TOKEN_KEY) as {id:string};
+
 
         if (userType === "ADMIN") {
             const user = await getAdminInfo(verifiedToken.id);

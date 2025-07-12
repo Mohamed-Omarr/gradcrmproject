@@ -25,7 +25,7 @@ export const generateToken = async (user:userData,res:NextApiResponse) => {
             role:  user.role
         };
 
-        const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "15m" });
+        const accessToken = jwt.sign(payload, access_token_key, { expiresIn: "1m" });
 
         const refreshToken = jwt.sign(payload, refresh_token_key, { expiresIn: "7d" });
         

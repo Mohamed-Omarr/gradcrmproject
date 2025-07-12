@@ -41,16 +41,12 @@ export default function AllProductsPage() {
   const isAuthed = IsCustomerAuthed();
   const router = useRouter();
 
-  const {
-    data: customerInfo,
-    isError: isCustomerInfoError,
-  } = useGetCustomerInfoQuery(undefined, {
-    skip: !isAuthed,
-  });
+  const { data: customerInfo, isError: isCustomerInfoError } =
+    useGetCustomerInfoQuery(undefined, {
+      skip: !isAuthed,
+    });
 
-  if (isAuthed && isCustomerInfoError) {
-    throw new Error("Failed getting customer Info");
-  }
+
 
   const {
     data: products,
@@ -108,26 +104,26 @@ export default function AllProductsPage() {
   // add to cart
   const [addToCart] = useAddToCartItemsMutation();
   const addingToCart = async (item: ShopProduct) => {
-       if (!isAuthed) {
-        toastingInfo("Login",router)
-        return;
-      }
-  
-      const product = {
-        productId: item.id,
-        quantity: item.qty,
-        size: item.sizes[0].code,
-        color: item.colors[0].code,
-      };
-  
-      const res = await addToCart(product);
-  
-      if (res.data) {
-        toastingSuccess(res.data.message);
-      } else {
-        toastingError(res.error);
-      }
+    if (!isAuthed) {
+      toastingInfo("Login", router);
+      return;
+    }
+
+    const product = {
+      productId: item.id,
+      quantity: item.qty,
+      size: item.sizes[0].code,
+      color: item.colors[0].code,
     };
+
+    const res = await addToCart(product);
+
+    if (res.data) {
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
+    }
+  };
 
   // handling filter product
   const filteredProducts = useMemo(() => {
@@ -189,7 +185,7 @@ export default function AllProductsPage() {
 
       setHightPrice(maxPrice);
       setLowestPrice(minPrice);
-     
+
       setFilter((prev) => ({
         ...prev,
         priceRange: [minPrice, maxPrice],
@@ -203,6 +199,11 @@ export default function AllProductsPage() {
 
   if (isCategoryError) {
     return <p>Error fetching categories</p>;
+  }
+
+    if (isCustomerInfoError) {
+    toastingInfo("Failed getting customer Info", router);
+    return;
   }
 
   const handleCategoryChange = (categoryName: string) => {
@@ -497,7 +498,10 @@ export default function AllProductsPage() {
                       </div>
 
                       {/* Add to cart button */}
-                      <button onClick={()=>addingToCart(item)} className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300">
+                      <button
+                        onClick={() => addingToCart(item)}
+                        className="w-full flex items-center justify-center rounded-md bg-gray-900 py-2 text-xs font-semibold text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-300"
+                      >
                         <ShoppingCart /> Add to Cart
                       </button>
                     </div>

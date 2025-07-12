@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Filter, Plus, Search, Pencil, Trash2} from "lucide-react";
+import { Filter, Plus, Search, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { useColors } from "@/hooks/crm/share-colors-context";
 import isEqual from "lodash.isequal";
 import { useRouter } from "next/navigation";
+import Loader from "@/app/Loader";
 
 const Step_One_Schema = z.object({
   name: z.string().min(1, "Required"),
@@ -71,7 +72,8 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const adminInfo = useAdminInfo();
   const availableColors = useColors();
-  
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   // other states
   const [open, setOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -94,40 +96,40 @@ export default function ProductsPage() {
     reset,
     watch,
     getValues,
-    formState: { isValid  },
+    formState: { isValid },
   } = methods;
- 
+
   const stepFields = [
     ["name", "description", "price", "quantity", "image", "categoryId"], // Step 1
     ["colors"], // Step 2
     ["sizes"], // Step 3
   ];
 
-const onNext = async () => {
-  const fields = stepFields[stepsIndex];
-  const fieldResults = {};
+  const onNext = async () => {
+    const fields = stepFields[stepsIndex];
+    const fieldResults = {};
 
-  // Validate each field individually and store result
-  for (const field of fields) {
-    const result = await trigger(field);
-    fieldResults[field] = result;
-  }
+    // Validate each field individually and store result
+    for (const field of fields) {
+      const result = await trigger(field);
+      fieldResults[field] = result;
+    }
 
-  console.log("Validation Results:", fieldResults);
-  console.log("Form Values:", getValues());
+    console.log("Validation Results:", fieldResults);
+    console.log("Form Values:", getValues());
 
-  // Determine if all fields are valid
-  const allValid = Object.values(fieldResults).every(Boolean);
+    // Determine if all fields are valid
+    const allValid = Object.values(fieldResults).every(Boolean);
 
-  if (allValid) {
-    setStepIndex((prev) => prev + 1);
-  }
-};
+    if (allValid) {
+      setStepIndex((prev) => prev + 1);
+    }
+  };
 
   const router = useRouter();
   const onSubmit = async (data: any) => {
     setIsSubmit(true);
-
+    setIsLoading(true);
     try {
       const {
         name,
@@ -169,7 +171,7 @@ const onNext = async () => {
             return x;
           });
 
-        toastingSuccess(creating.data.message,router.refresh);
+        toastingSuccess(creating.data.message, router.refresh);
         setProduct(creating.data.products);
       } else {
         formData.append("id", updateFollowingProduct.id); // <- extend like this
@@ -195,7 +197,7 @@ const onNext = async () => {
           }
         );
 
-        toastingSuccess(res,router.refresh);
+        toastingSuccess(res, router.refresh);
 
         setProduct(res.data.updatedProduct);
       }
@@ -217,10 +219,12 @@ const onNext = async () => {
         sizes: undefined,
         categoryId: undefined,
       });
+      setIsLoading(false)
     }
   };
 
   const onDelete = async (productId: number) => {
+    setIsLoading(true);
     try {
       const res = await axiosAdmin.delete("product/productMethods", {
         data: {
@@ -228,20 +232,25 @@ const onNext = async () => {
           ownerId: adminInfo?.id,
         },
       });
-      toastingSuccess(res,router.refresh);
+      toastingSuccess(res, router.refresh);
     } catch (err) {
       toastingError(err);
+    }finally{
+      setIsLoading(false);
     }
   };
 
   // fetch data product & category
   const fetchProduct = async () => {
+    setIsLoading(true);
     try {
       const res = await axiosAdmin.get("product/productMethods");
       setProduct(res.data.products);
       toastingSuccess(res);
     } catch (err) {
       toastingError(err);
+    }finally{
+    setIsLoading(false);
     }
   };
 
@@ -289,7 +298,7 @@ const onNext = async () => {
     sizes: watched.sizes?.sort(),
     // Don't include `image`
   };
-  
+
   const simplifiedOriginal = updateFollowingProduct && {
     name: updateFollowingProduct.name,
     description: updateFollowingProduct.description,
@@ -300,7 +309,7 @@ const onNext = async () => {
     sizes: updateFollowingProduct.sizes.map((s) => s.id).sort(),
   };
   const hasChanges = !isEqual(simplifiedWatched, simplifiedOriginal);
-  
+
   return (
     <FormProvider {...methods}>
       <div className="h-full space-y-6">
@@ -382,7 +391,7 @@ const onNext = async () => {
                 ) : isEditing ? (
                   <>
                     <Button type="submit" disabled={!hasChanges || isSubmit}>
-                      {isSubmit ? "Save": "Saving"}
+                      {isSubmit ? "Save" : "Saving"}
                     </Button>
 
                     <Button type="button" onClick={() => setOpen(false)}>
@@ -391,7 +400,7 @@ const onNext = async () => {
                   </>
                 ) : (
                   <Button type="submit" disabled={!isValid || isSubmit}>
-                    {isSubmit ? "Save": "Saving"}
+                    {isSubmit ? "Save" : "Saving"}
                   </Button>
                 )}
               </form>
@@ -436,7 +445,8 @@ const onNext = async () => {
                 <div className="col-span-2">Options</div>
                 <div className="col-span-1 text-right">Actions</div>
               </div>
-              {products && products.length > 0 ? (
+              {isLoading ? <Loader/> : (
+                products && products.length > 0 ? (
                 products.map((item, index) => (
                   <div key={index} className="divide-y">
                     <div className="p-3 grid grid-cols-12 items-center">
@@ -516,6 +526,7 @@ const onNext = async () => {
                 ))
               ) : (
                 <p>Currently No Products Avalibles</p>
+              )
               )}
             </div>
           </CardContent>

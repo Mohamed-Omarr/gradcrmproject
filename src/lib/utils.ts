@@ -7,7 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export function IsCustomerAuthed() {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("AccessToken")
+    return !!localStorage.getItem("AccessToken");
   }
+  return false;
 }
+
 

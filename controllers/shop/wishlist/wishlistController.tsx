@@ -20,8 +20,10 @@ export const addToWishlistItems = async (
 
     const scan = await prisma.wishlistItems.findUnique({
       where: {
-        customerId: data.customerId,
-        productId: data.productId,
+        customerId_productId: {
+          customerId: data.customerId,
+          productId: data.productId,
+        },
       },
     });
 
@@ -56,8 +58,10 @@ export const deleteWishlist = async (
 
     const scan = await prisma.wishlistItems.findUnique({
       where: {
-        customerId: data.customerId,
-        productId: data.productId,
+        customerId_productId: {
+          customerId: data.customerId,
+          productId: data.productId,
+        },
       },
     });
 

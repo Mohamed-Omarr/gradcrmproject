@@ -1,44 +1,212 @@
 "use client"
-
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
-import {  Edit, Save, X } from "lucide-react"
+import { Edit, Save, X } from "lucide-react"
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess"
+import { toastingError } from "@/lib/toast_message/toastingErrors"
+import axiosClient from "@/lib/axios/axiosClient"
 
-interface PersonalInfoTabProps {
-  userData: {
-    name: string
-    email: string
-    image: string
-  }
-  onUpdateUser: (userData: any) => void
-}
 
-export default function PersonalInfoTab({ userData, onUpdateUser }: PersonalInfoTabProps) {
+export default function PersonalInfoTab({
+  userData,
+}: {
+  userData: customerData
+}) {
   const [editMode, setEditMode] = useState(false)
-  const [formData, setFormData] = useState({ ...userData })
+  const [formData, setFormData] = useState({
+    ...userData,
+    password: "",
+  })
   const [hasChanges, setHasChanges] = useState(false)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
   const editButtonRef = useRef<HTMLButtonElement>(null)
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [passwordErrors, setPasswordErrors] = useState<{ [key: string]: string }>({})
+
+  // Check if name or email has changed (for password requirement)
+  const hasNameOrEmailChanged = () => {
+    return formData.name !== userData.name || formData.email !== userData.email
+  }
+
+  // Validate password requirements
+  const validatePassword = (password: string) => {
+    const errors: string[] = []
+    if (password.length < 8) errors.push("At least 8 characters")
+    if (!/[A-Z]/.test(password)) errors.push("One uppercase letter")
+    if (!/[a-z]/.test(password)) errors.push("One lowercase letter")
+    if (!/\d/.test(password)) errors.push("One number")
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push("One special character")
+    return errors
+  }
+
+  // Validate password change form
+  const validatePasswordForm = () => {
+    const errors: { [key: string]: string } = {}
+
+    if (!passwordData.currentPassword) {
+      errors.currentPassword = "Current password is required"
+    }
+
+    if (!passwordData.newPassword) {
+      errors.newPassword = "New password is required"
+    } else {
+      const passwordValidationErrors = validatePassword(passwordData.newPassword)
+      if (passwordValidationErrors.length > 0) {
+        errors.newPassword = `Password must have: ${passwordValidationErrors.join(", ")}`
+      }
+    }
+
+    if (!passwordData.confirmPassword) {
+      errors.confirmPassword = "Please confirm your new password"
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match"
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      errors.newPassword = "New password must be different from current password"
+    }
+
+    setPasswordErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData({
+    const newFormData = {
       ...formData,
       [name]: value,
+    }
+
+    setFormData(newFormData)
+
+    // Check if there are any changes from original data
+    const hasDataChanges = newFormData.name !== userData.name || newFormData.email !== userData.email
+    setHasChanges(hasDataChanges)
+
+    // Clear password if name and email are reverted to original
+    if (!hasDataChanges) {
+      setFormData((prev) => ({ ...prev, password: "" }))
+    }
+  }
+
+  // Handle password form input changes
+  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setPasswordData({
+      ...passwordData,
+      [name]: value,
     })
-    setHasChanges(true)
+
+    // Clear specific error when user starts typing
+    if (passwordErrors[name]) {
+      setPasswordErrors({
+        ...passwordErrors,
+        [name]: "",
+      })
+    }
+  }
+
+  // Update user name
+  const onUpdatingName = async () => {
+    try {
+      const res = await axiosClient.post("profile/updateCustomerName", {
+        id: userData.id,
+        previousName: userData.name,
+        newName: formData.name,
+      })
+      return toastingSuccess(res.data.message, () => window.location.reload())
+    } catch (err) {
+      return toastingError(err)
+    }
+  }
+
+  // Update user email
+  const onUpdatingEmail = async () => {
+    try {
+      const res = await axiosClient.post("profile/updateCustomerEmail", {
+        id: userData.id,
+        previousEmail: userData.email,
+        newEmail: formData.email,
+        password: formData.password,
+      })
+      return toastingSuccess(res.data.message, () => window.location.reload())
+    } catch (err) {
+      return toastingError(err)
+    }
+  }
+
+  // Handle password change
+  const onChangingPassword = async () => {
+    if (!validatePasswordForm()) {
+      return
+    }
+    try {
+      const res = await axiosClient.post("profile/updateCustomerPassword", {
+        id: userData.id,
+        email: userData.email,
+        confirmNewPassword: passwordData.confirmPassword,
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      })
+
+      // Reset password form
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      setShowPasswordChange(false)
+      setPasswordErrors({})
+
+      return toastingSuccess(res.data.message)
+    } catch (err) {
+      return toastingError(err)
+    }
+  }
+
+  // Handle cancel password change
+  const handleCancelPasswordChange = () => {
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    })
+    setPasswordErrors({})
+    setShowPasswordChange(false)
   }
 
   // Handle save
-  const handleSave = () => {
-    onUpdateUser(formData)
-    setEditMode(false)
-    setHasChanges(false)
+  const handleSave = async () => {
+    // Validate password if name or email changed
+    if (hasNameOrEmailChanged() && !formData.password) {
+      toastingError("Password is required to update your name or email")
+      return
+    }
+
+    try {
+      // Update name if changed
+      if (formData.name !== userData.name) {
+        await onUpdatingName()
+      }
+
+      // Update email if changed
+      if (formData.email !== userData.email) {
+        await onUpdatingEmail()
+      }
+
+      setEditMode(false)
+      setHasChanges(false)
+      setFormData((prev) => ({ ...prev, password: "" }))
+    } catch (error) {
+      console.error("Error updating user data:", error)
+    }
   }
 
   // Handle cancel edit
@@ -52,23 +220,10 @@ export default function PersonalInfoTab({ userData, onUpdateUser }: PersonalInfo
 
   // Reset form to original data
   const resetForm = () => {
-    setFormData({ ...userData })
+    setFormData({ ...userData, password: "" })
     setEditMode(false)
     setHasChanges(false)
     setShowDiscardConfirm(false)
-  }
-
-  // Handle profile image change
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const imageUrl = URL.createObjectURL(file)
-      setFormData({
-        ...formData,
-        image: imageUrl,
-      })
-      setHasChanges(true)
-    }
   }
 
   // Handle click outside form
@@ -88,7 +243,6 @@ export default function PersonalInfoTab({ userData, onUpdateUser }: PersonalInfo
         }
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
@@ -178,40 +332,6 @@ export default function PersonalInfoTab({ userData, onUpdateUser }: PersonalInfo
         ref={formRef}
         className={`transition-all duration-200 ${editMode ? "bg-gray-50 p-6 rounded-lg border border-gray-200" : ""}`}
       >
-        {/* Profile Image */}
-        <div className="mb-6">
-          <div className="flex flex-col items-center">
-            <div className="relative h-32 w-32 rounded-full overflow-hidden border-2 border-gray-200 mb-4 group">
-              <Image src={formData.image || "/placeholder.svg"} alt={formData.name} fill className="object-cover" />
-              {editMode && (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <span className="sr-only">Change profile picture</span>
-                </button>
-              )}
-            </div>
-            {editMode && (
-              <>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  Change photo
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
         {/* Personal Info Form */}
         <div className="space-y-4">
           <div>
@@ -250,24 +370,25 @@ export default function PersonalInfoTab({ userData, onUpdateUser }: PersonalInfo
             )}
           </div>
 
-          {/* <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            {editMode ? (
+          {/* Conditional Password Field */}
+          {editMode && hasNameOrEmailChanged() && (
+            <div className="pt-4 border-t border-gray-200">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Current Password <span className="text-red-500">*</span>
+              </label>
               <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
                 onChange={handleInputChange}
+                placeholder="Enter your current password to confirm changes"
                 className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                required
               />
-            ) : (
-              <p className="text-gray-900 py-2">{userData.phone}</p>
-            )}
-          </div> */}
-          
+              <p className="mt-1 text-xs text-gray-500">Password is required to update your name or email address</p>
+            </div>
+          )}
         </div>
 
         {/* Edit mode buttons for mobile */}
@@ -291,13 +412,143 @@ export default function PersonalInfoTab({ userData, onUpdateUser }: PersonalInfo
         )}
       </div>
 
-      {/* Password Change Section */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Password</h3>
-        <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-          Change Password
-        </button>
-      </div>
+      {/* Password Change Section - Only show when not editing or no name/email changes */}
+      {(!editMode || !hasNameOrEmailChanged()) && (
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Password</h3>
+
+          {!showPasswordChange ? (
+            <button
+              onClick={() => setShowPasswordChange(true)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Change Password
+            </button>
+          ) : (
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+              <div className="space-y-4">
+                {/* Current Password */}
+                <div>
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Current Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordInputChange}
+                    className={`w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
+                      passwordErrors.currentPassword ? "border-red-300" : "border-gray-300"
+                    }`}
+                    placeholder="Enter your current password"
+                  />
+                  {passwordErrors.currentPassword && (
+                    <p className="mt-1 text-xs text-red-600">{passwordErrors.currentPassword}</p>
+                  )}
+                </div>
+
+                {/* New Password */}
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordInputChange}
+                    className={`w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
+                      passwordErrors.newPassword ? "border-red-300" : "border-gray-300"
+                    }`}
+                    placeholder="Enter your new password"
+                  />
+                  {passwordErrors.newPassword && (
+                    <p className="mt-1 text-xs text-red-600">{passwordErrors.newPassword}</p>
+                  )}
+                  {!passwordErrors.newPassword && passwordData.newPassword && (
+                    <div className="mt-1">
+                      <div className="text-xs text-gray-600 mb-1">Password strength:</div>
+                      <div className="flex space-x-1">
+                        {validatePassword(passwordData.newPassword).length === 0 ? (
+                          <div className="flex-1 h-1 bg-green-500 rounded"></div>
+                        ) : validatePassword(passwordData.newPassword).length <= 2 ? (
+                          <>
+                            <div className="flex-1 h-1 bg-yellow-500 rounded"></div>
+                            <div className="flex-1 h-1 bg-gray-200 rounded"></div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex-1 h-1 bg-red-500 rounded"></div>
+                            <div className="flex-1 h-1 bg-gray-200 rounded"></div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm New Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordInputChange}
+                    className={`w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
+                      passwordErrors.confirmPassword ? "border-red-300" : "border-gray-300"
+                    }`}
+                    placeholder="Confirm your new password"
+                  />
+                  {passwordErrors.confirmPassword && (
+                    <p className="mt-1 text-xs text-red-600">{passwordErrors.confirmPassword}</p>
+                  )}
+                  {!passwordErrors.confirmPassword &&
+                    passwordData.confirmPassword &&
+                    passwordData.newPassword === passwordData.confirmPassword && (
+                      <p className="mt-1 text-xs text-green-600">✓ Passwords match</p>
+                    )}
+                </div>
+
+                {/* Password Requirements */}
+                <div className="bg-blue-50 p-3 rounded-md">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">Password Requirements:</h4>
+                  <ul className="text-xs text-blue-800 space-y-1">
+                    <li>• At least 8 characters long</li>
+                    <li>• One uppercase letter (A-Z)</li>
+                    <li>• One lowercase letter (a-z)</li>
+                    <li>• One number (0-9)</li>
+                    <li>• One special character (!@#$%^&*)</li>
+                  </ul>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={onChangingPassword}
+                    className="flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-black transition-colors"
+                  >
+                    <Save className="h-4 w-4 mr-1.5" />
+                    Update Password
+                  </button>
+                  <button
+                    onClick={handleCancelPasswordChange}
+                    className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    <X className="h-4 w-4 mr-1.5" />
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

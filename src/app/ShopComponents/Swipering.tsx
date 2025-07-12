@@ -6,7 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation"; // Don't forget this
 import { Navigation, Autoplay } from "swiper/modules"; // Import Navigation module
 import Image from "next/image";
-import CarImage from "../../../public/Forza-Horizon-5-Release-Date-How-to-pre-order-Download-Size-Everything-you-must-know.jpg";
+import Tshirt  from "../../../public/00722745420-e1.jpg";
 
 function Swipering() {
   return (
@@ -26,7 +26,7 @@ function Swipering() {
       >
         <SwiperSlide className="!mx-0 relative w-full h-full flex-shrink-0">
           <Image
-            src={CarImage}
+            src={Tshirt}
             alt="img"
             fill
             className="w-full h-[250px] md:h-[350px] lg:h-[400px] object-cover object-center"
@@ -41,7 +41,7 @@ function Swipering() {
         </SwiperSlide>
         <SwiperSlide className="!mx-0 relative w-full h-full flex-shrink-0">
           <Image
-            src={CarImage}
+            src={Tshirt}
             alt="img"
             fill
             className="w-full h-[250px] md:h-[350px] lg:h-[400px] object-cover object-center"
@@ -56,7 +56,7 @@ function Swipering() {
         </SwiperSlide>
         <SwiperSlide className="!mx-0 relative w-full h-full flex-shrink-0">
           <Image
-            src={CarImage}
+            src={Tshirt}
             alt="img"
             fill
             className="w-full h-[250px] md:h-[350px] lg:h-[400px] object-cover object-center"
@@ -71,7 +71,7 @@ function Swipering() {
         </SwiperSlide>
         <SwiperSlide className="!mx-0 relative w-full h-full flex-shrink-0">
           <Image
-            src={CarImage}
+            src={Tshirt}
             alt="img"
             fill
             className="w-full h-[250px] md:h-[350px] lg:h-[400px] object-cover object-center"
@@ -86,7 +86,7 @@ function Swipering() {
         </SwiperSlide>
         <SwiperSlide className="!mx-0 relative w-full h-full flex-shrink-0">
           <Image
-            src={CarImage}
+            src={Tshirt}
             alt="img"
             fill
             className="w-full h-[250px] md:h-[350px] lg:h-[400px] object-cover object-center"

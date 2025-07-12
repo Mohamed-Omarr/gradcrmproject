@@ -16,8 +16,8 @@ const apiSection = [customerInfoApi.middleware ,categoryApi.middleware,productAp
 
 export const store = configureStore({
     reducer: {
-    [customerInfoApi.reducerPath]: customerInfoApi.reducer,
     order: orderReducer,
+    [customerInfoApi.reducerPath]: customerInfoApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
     [productApi.reducerPath]: productApi.reducer,
     [wishlistApi.reducerPath]: wishlistApi.reducer,

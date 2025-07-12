@@ -70,7 +70,6 @@ export const customer_login = async (req:NextApiRequest,res:NextApiResponse) => 
             if(pushingDB.success){
                 // await generate the token
                 const tokenResult =  await generateToken(limitAccess,res);
-                
                 if (tokenResult.success) {
                     return res.status(200).json({message:"Login successfully",accessToken:tokenResult.accessToken})
                 } else {
@@ -154,6 +153,7 @@ export const frequentLogout = async (req:NextApiRequest,res:NextApiResponse) => 
 export const info_of_customer = async (req:NextApiRequest,res:NextApiResponse) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
+        
         if (!token) {
             return res.status(401).json("Not Authorized User");
         }

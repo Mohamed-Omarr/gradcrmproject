@@ -7,7 +7,6 @@ import { Suspense } from "react";
 import Loader from "../Loader";
 import Providers from "../shop/redux/Providers";
 import { ToastContainer } from "react-toastify";
-export const dynamic = "force-dynamic";
 
 
 const geistSans = Geist({

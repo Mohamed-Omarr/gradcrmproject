@@ -11,21 +11,24 @@ export const rateApi = createApi({
     baseQuery: axiosBaseQueryShop(),
     endpoints: (build) => ({
         createReview: build.mutation({
-            query: () => ({
+            query: (followingItem) => ({
                 url:'product/rateProductMethods',
-                method:'POST'
+                method:'POST',
+                data:followingItem,
             }),
         }),
         updateReview: build.mutation({
-            query: () => ({
+            query: (followingItem) => ({
                 url:'product/rateProductMethods',
-                method:'PATCH'
+                method:'PATCH',
+                data:followingItem,
             }),
         }),
         deleteReview: build.mutation({
-            query: () => ({
+            query: (followingItem) => ({
                 url:'product/rateProductMethods',
-                method:'DELETE'
+                method:'DELETE',
+                data:followingItem,
             }),
         }),
     })

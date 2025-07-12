@@ -6,7 +6,9 @@ const nextConfig: NextConfig = {
   // devIndicators: {
   //   buildActivity: false, // ✅ Hides build activity indicator
   // },
-   typescript: {
+  images: {
+    domains: ["rbinxrirpivsnlnsvvno.supabase.co"],},
+  typescript: {
     ignoreBuildErrors: true,
   },
     eslint: {

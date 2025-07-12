@@ -66,7 +66,6 @@ type adminData = {
 
 type customerData = {
     email:string,
-    role:string,
     name:string,
     id:string,
 }

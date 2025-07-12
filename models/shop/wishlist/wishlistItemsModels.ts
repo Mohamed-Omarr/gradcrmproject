@@ -18,9 +18,10 @@ export const deletingWishlistItems = async (data:DeleteWishlistItems) => {
     try{
         await prisma.wishlistItems.delete({
             where: {
-                id:data.id,
-                customerId: data.customerId,
-                productId: data.productId,
+                customerId_productId: {
+                    customerId: data.customerId,
+                    productId: data.productId,
+                },
             },
         });
         return { success: true };

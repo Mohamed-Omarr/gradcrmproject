@@ -64,7 +64,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
         email: AdminInfo.email,
       };
 
-      const res = await axiosAdmin.post("profile/updatePassword", {
+      const res = await axiosAdmin.post("profile/updateAdminPassword", {
         id: AdminInfo.id,
         email: AdminInfo.email,
         currentPassword: newData.currentPassword,
