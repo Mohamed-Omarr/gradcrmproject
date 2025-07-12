@@ -50,14 +50,23 @@ export default function ProfilePage() {
       <div className="flex justify-center items-center min-h-screen">
         <p className="text-gray-600">No user data found.</p>
       </div>
-    );
+    )
+  }
+
+  // Type guard to ensure userData.user exists
+  if (!userData?.user) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-gray-600">Loading user information...</p>
+      </div>
+    )
   }
 
   // Render active tab content
   const renderTabContent = () => {
     switch (activeTab) {
       case "personal":
-        return <PersonalInfoTab userData={userData!.user} />;
+        return <PersonalInfoTab userData={userData.user} />;
       case "addresses":
         return <AddressesTab />;
       case "cards":
@@ -65,7 +74,7 @@ export default function ProfilePage() {
       case "orders":
         return <OrdersTab />;
       default:
-        return <PersonalInfoTab userData={userData!.user} />;
+        return <PersonalInfoTab userData={userData.user} />;
     }
   };
 
@@ -84,7 +93,7 @@ export default function ProfilePage() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <ProfileSidebar
-            userData={userData!.user}
+            userData={userData.user}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
