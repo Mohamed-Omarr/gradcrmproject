@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import { shopFrequentExit } from "../../../_lib_backend/token/shopFrequentExit";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:3000/api/shop/",
+  baseURL: `${process.env.NEXT_PUBLIC_BASE_URL}/api/shop/`,
   withCredentials: true,
 });
 
