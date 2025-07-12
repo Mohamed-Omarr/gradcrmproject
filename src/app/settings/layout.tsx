@@ -6,6 +6,7 @@ import Footer from "../ShopComponents/Footer";
 import { Suspense } from "react";
 import Loader from "../Loader";
 import { ToastContainer } from "react-toastify";
+import Providers from "../shop/redux/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,12 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased  py-5`}
       >
-        <Suspense fallback={<Loader />}>
-          <Header />
-          <main className="px-40">{children}</main>
-          <Footer />
-        </Suspense>
-        <ToastContainer/>
+        <Header />
+        <Providers>
+          <Suspense fallback={<Loader />}>{children}</Suspense>
+        </Providers>
+        <Footer />
+        <ToastContainer />
       </body>
     </html>
   );
