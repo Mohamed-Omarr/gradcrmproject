@@ -35,7 +35,7 @@ export default function ProfilePage() {
   }
 
   // Show error message
-  if (isUserDataInfoError || !userData?.user) {
+  if (isUserDataInfoError ) {
     toastingInfo("Failed getting customer Info", router);
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -45,7 +45,7 @@ export default function ProfilePage() {
   }
 
   // If user data is missing for some reason
-  if (isUserDataInfoSuccess && !userData.user) {
+  if (isUserDataInfoSuccess && !userData?.user) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p className="text-gray-600">No user data found.</p>
@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "personal":
-        return <PersonalInfoTab userData={userData.user} />;
+        return <PersonalInfoTab userData={userData!.user} />;
       case "addresses":
         return <AddressesTab />;
       case "cards":
@@ -65,7 +65,7 @@ export default function ProfilePage() {
       case "orders":
         return <OrdersTab />;
       default:
-        return <PersonalInfoTab userData={userData.user} />;
+        return <PersonalInfoTab userData={userData!.user} />;
     }
   };
 
@@ -84,7 +84,7 @@ export default function ProfilePage() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <ProfileSidebar
-            userData={userData.user}
+            userData={userData!.user}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
