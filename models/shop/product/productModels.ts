@@ -10,8 +10,18 @@ export const get_all_product = async () => {
                     price:true,
                     qty:true,
                     thumbnail:true,
-                    colors:true,
-                    sizes:true,
+                    colors:{
+                        select:{
+                            code:true,
+                            name:true,
+                        }
+                    },
+                    sizes:{
+                        select:{
+                            code:true,
+                            name:true,
+                        }
+                    },
                     category:{
                         select:{
                             name:true,
