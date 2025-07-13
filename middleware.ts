@@ -104,5 +104,5 @@ export async function middleware(req:NextRequest) {
 }
 
 export const config = {
-  matcher:[ "/", "/shop/:path*","/crm/:path*"]  //apply to all crm routes and shop
+  matcher:[ "/", "/shop/:path*","/crm/:path*" ,"/settings/:path*"]  //apply to all crm routes and shop
 }

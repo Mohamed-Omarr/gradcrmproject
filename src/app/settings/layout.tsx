@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased  py-5`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
         <Header />
         <Providers>
