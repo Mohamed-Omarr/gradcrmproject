@@ -30,23 +30,29 @@ export default function AllProductsPage() {
   const [hightPrice, setHightPrice] = useState<number>(0);
   const [lowestPrice, setLowestPrice] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [colors, setColors] = useState<Colors[] | []>([]);
+  const [sizes, setSizes] = useState<Sizes[] | []>([]);
   const [filter, setFilter] = useState<{
     categories: string[];
     priceRange: number[];
+    colors: string[];
+    sizes: string[];
   }>({
     categories: [],
     priceRange: [0, 0],
+    colors: [],
+    sizes: [],
   });
   const [sortStatus, setSortStatus] = useState<string>("featured");
+
   const isAuthed = IsCustomerAuthed();
+
   const router = useRouter();
 
   const { data: customerInfo, isError: isCustomerInfoError } =
     useGetCustomerInfoQuery(undefined, {
       skip: !isAuthed,
     });
-
-
 
   const {
     data: products,
@@ -63,7 +69,6 @@ export default function AllProductsPage() {
   } = useGetCategoriesQuery();
 
   // add to wishlist
-
   const [removeWishListItem] = useDeleteWishlistItemMutation();
 
   const [addToWishlistItem] = useAddToWishlistItemMutation();
@@ -131,11 +136,23 @@ export default function AllProductsPage() {
 
     let result = [...products.products];
 
-    if (filter.categories && filter.categories.length > 0) {
+    if (filter.categories.length > 0) {
       result = result.filter((product) =>
         filter.categories.some((category) =>
           product.category.name.toLowerCase().includes(category.toLowerCase())
         )
+      );
+    }
+
+    if (filter.colors.length > 0) {
+      result = result.filter((product) =>
+        product.colors.some((color) => filter.colors.includes(color.code))
+      );
+    }
+
+    if (filter.sizes.length > 0) {
+      result = result.filter((product) =>
+        product.sizes.some((size) => filter.sizes.includes(size.code))
       );
     }
 
@@ -153,21 +170,15 @@ export default function AllProductsPage() {
       );
     }
 
-    // stock status filter
     switch (sortStatus) {
       case "price-high-low":
         result = result.sort((a, b) => Number(b.price) - Number(a.price));
         break;
-
       case "price-low-high":
         result = result.sort((a, b) => Number(a.price) - Number(b.price));
         break;
-
       case "newest":
         result = result.filter((product) => product.qty === 0);
-        break;
-
-      case "featured":
         break;
       default:
         setSortStatus("featured");
@@ -177,21 +188,45 @@ export default function AllProductsPage() {
     return result;
   }, [filter, products, searchQuery, sortStatus]);
 
-  useEffect(() => {
-    if (isProductSuccess && products.products.length > 0) {
-      const prices = products.products.map((p: ShopProduct) => p.price);
-      const maxPrice = Math.max(...prices);
-      const minPrice = Math.min(...prices);
+useEffect(() => {
+  if (isProductSuccess && products.products.length > 0) {
+    const prices = products.products
+      .map((p: ShopProduct) => p.price)
+      .filter((p) => p != null);
 
-      setHightPrice(maxPrice);
-      setLowestPrice(minPrice);
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
-      setFilter((prev) => ({
-        ...prev,
-        priceRange: [minPrice, maxPrice],
-      }));
-    }
-  }, [isProductSuccess, products]);
+    // Deduplicate colors
+    const colors = Array.from(
+      new Map(
+        products.products
+          .flatMap((p) => p.colors)
+          .map((color) => [color.code, color])
+      ).values()
+    );
+
+    // Deduplicate sizes
+    const sizes = Array.from(
+      new Map(
+        products.products
+          .flatMap((p) => p.sizes)
+          .map((size) => [size.code, size])
+      ).values()
+    );
+
+    setColors(colors);
+    setSizes(sizes);
+    setHightPrice(maxPrice);
+    setLowestPrice(minPrice);
+
+    setFilter((prev) => ({
+      ...prev,
+      priceRange: [minPrice, maxPrice],
+    }));
+  }
+}, [isProductSuccess, products]);
+
 
   if (isProductError) {
     return <p>Failed to fetch products</p>;
@@ -201,10 +236,22 @@ export default function AllProductsPage() {
     return <p>Error fetching categories</p>;
   }
 
-    if (isCustomerInfoError) {
+  if (isCustomerInfoError) {
     toastingInfo("Failed getting customer Info", router);
     return;
   }
+
+  const toggleFilter = (type: "colors" | "sizes", value: string) => {
+    setFilter((prev) => {
+      const isSelected = prev[type].includes(value);
+      return {
+        ...prev,
+        [type]: isSelected
+          ? prev[type].filter((item) => item !== value)
+          : [...prev[type], value],
+      };
+    });
+  };
 
   const handleCategoryChange = (categoryName: string) => {
     const updatedCategory = filter.categories.includes(categoryName);
@@ -219,6 +266,15 @@ export default function AllProductsPage() {
         categories: [...prev.categories, categoryName],
       }));
     }
+  };
+
+  const clearAllFilters = () => {
+    setFilter({
+      categories: [],
+      priceRange: [lowestPrice, hightPrice],
+      colors: [],
+      sizes: [],
+    });
   };
 
   return (
@@ -390,7 +446,25 @@ export default function AllProductsPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-2">
                   Colors
                 </h3>
-                <div className="space-y-2">display ll colors</div>
+                <div className="space-y-2">
+                  {colors.map((color) => (
+                    <div key={color.code} className="flex items-center">
+                      <input
+                        id={`color-${color.code}`}
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                        checked={filter.colors.includes(color.code)}
+                        onChange={() => toggleFilter("colors", color.code)}
+                      />
+                      <label
+                        htmlFor={`color-${color.code}`}
+                        className="ml-3 text-sm text-gray-600"
+                      >
+                        {color.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Sizes */}
@@ -398,7 +472,21 @@ export default function AllProductsPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-2">
                   Sizes
                 </h3>
-                <div className="grid grid-cols-4 gap-2">display ll sizes</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {sizes.map((size) => (
+                    <button
+                      key={size.code}
+                      className={`py-1 px-2 text-sm font-medium rounded-md border ${
+                        filter.sizes.includes(size.code)
+                          ? "bg-gray-900 text-white border-gray-900"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                      onClick={() => toggleFilter("sizes", size.code)}
+                    >
+                      {size.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -576,7 +664,7 @@ export default function AllProductsPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-2">
                   Categories
                 </h3>
-                <div className="space-y-2">all categ</div>
+                <div className="space-y-2">all category</div>
               </div>
 
               {/* Price Range */}
@@ -637,24 +725,49 @@ export default function AllProductsPage() {
               </div>
 
               {/* Colors */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-900 mb-2">
-                  Colors
-                </h3>
-                <div className="space-y-2">all colors</div>
+              <div className="space-y-2">
+                {colors.map((color) => (
+                  <div key={color.code} className="flex items-center">
+                    <input
+                      id={`mobile-color-${color.code}`}
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                      checked={filter.colors.includes(color.code)}
+                      onChange={() => toggleFilter("colors", color.code)}
+                    />
+                    <label
+                      htmlFor={`mobile-color-${color.code}`}
+                      className="ml-3 text-sm text-gray-600"
+                    >
+                      {color.name}
+                    </label>
+                  </div>
+                ))}
               </div>
 
               {/* Sizes */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-900 mb-2">
-                  Sizes
-                </h3>
-                <div className="grid grid-cols-4 gap-2">all sizes</div>
+              <div className="grid grid-cols-4 gap-2">
+                {sizes.map((size) => (
+                  <button
+                    key={size.code}
+                    className={`py-1 px-2 text-sm font-medium rounded-md border ${
+                      filter.sizes.includes(size.code)
+                        ? "bg-gray-900 text-white border-gray-900"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => toggleFilter("sizes", size.code)}
+                  >
+                    {size.name}
+                  </button>
+                ))}
               </div>
 
               {/* Apply button */}
               <div className="mt-6 flex items-center justify-between">
-                <button className="text-sm font-medium text-gray-600 hover:text-gray-900">
+                <button
+                  onClick={() => clearAllFilters()}
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
                   Clear all
                 </button>
                 <button
