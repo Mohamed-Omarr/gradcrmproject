@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Trash, X, Check, Shield, Plus } from "lucide-react";
+import { CreditCard, Trash, X, Shield, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ import { useGetCardQuery } from "../shop/redux/services/cardApi";
 import Loader from "../Loader";
 import { toastingError } from "@/lib/toast_message/toastingErrors";
 import axiosClient from "@/lib/axios/axiosClient";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 
 const getBrandIcon = (brand: string) => {
   const icons = {
@@ -44,23 +45,26 @@ export default function CardsTab() {
   const [showAddCard, setShowAddCard] = useState(false);
   const { data: cards, isLoading, isSuccess } = useGetCardQuery();
 
-  const setToDefaultCard = async (followingCardId) => {
+  const setToDefaultCard = async (followingCardId:number) => {
     try {
       await axiosClient.post("payment/stripe/set-default-card", {
         cardId: followingCardId,
       });
+      toastingSuccess("Card set as default successfully",()=>window.location.reload());
     } catch (err) {
       toastingError(err);
     }
   };
 
-  const removeCard = async(followingCardId) => {
+  const removeCard = async (followingCardId:number) => {
     try {
-      await axiosClient.delete("payment/stripe/delete-card",{
-        data:{
+      await axiosClient.delete("payment/stripe/delete-card", {
+        data: {
           cardId: followingCardId,
-        }
+        },
       });
+      toastingSuccess("Removed Card successfully",()=>window.location.reload());
+      
     } catch (err) {
       toastingError(err);
     }
@@ -153,7 +157,6 @@ export default function CardsTab() {
                         size="sm"
                         className="h-8 gap-1"
                         onClick={() => {
-                          console.log("Clicked to set default:", card.id);
                           setToDefaultCard(card.id);
                         }}
                       >
@@ -161,7 +164,7 @@ export default function CardsTab() {
                       </Button>
                     )}
                     <Button
-                    onClick={()=>removeCard(card.id)}
+                      onClick={() => removeCard(card.id)}
                       variant="ghost"
                       size="sm"
                       className="h-8 text-destructive hover:text-destructive"
@@ -200,7 +203,12 @@ export default function CardsTab() {
             </div>
           </CardHeader>
           <CardContent>
-            <SaveCardForm onSuccess={() => setShowAddCard(false)} />
+            <SaveCardForm
+              onSuccess={() => {
+                setShowAddCard(false);
+                toastingSuccess("Card added successfully", () => window.location.reload());
+              }}
+            />
           </CardContent>
         </Card>
       )}

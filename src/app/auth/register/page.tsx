@@ -44,7 +44,7 @@ function Register() {
     setIsSubmit(true);
     try {
       const res = await axios.post("/api/shop/auth/customerRegister", data);
-      toastingSuccess(res, () => redirect("/auth/login"));
+      toastingSuccess(res.data.message, () => redirect("/auth/login"));
     } catch (error) {
       toastingError(error);
     } finally {

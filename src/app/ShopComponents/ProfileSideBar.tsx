@@ -1,8 +1,10 @@
 "use client";
+import axiosClient from "@/lib/axios/axiosClient";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { CreditCard, LogOut, MapPin, Package, User } from "lucide-react";
 
 interface ProfileSidebarProps {
-  userData: customerData,
+  userData: customerData;
   activeTab: string;
   onTabChange: (tab: string) => void;
   hasUnsavedChanges?: boolean;
@@ -30,6 +32,21 @@ export default function ProfileSidebar({
     }
   };
 
+  const router = useRouter();
+  
+  const onLogouts = async () => {
+    try {
+      await axiosClient.post("auth/customerLogout", {
+        userId: userData.id,
+        userRole: userData.role,
+      });
+      localStorage.removeItem("AccessToken");
+      router.push("/home");
+    } catch (err) {
+      toastingError(err);
+    }
+  };
+
   return (
     <div className="w-full md:w-64 flex-shrink-0">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -51,7 +68,10 @@ export default function ProfileSidebar({
           ))}
 
           {/* Logout button */}
-          <button className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md mt-2">
+          <button
+            onClick={() => onLogouts()}
+            className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md mt-2"
+          >
             <LogOut className="h-5 w-5 mr-3" />
             Logout
           </button>

@@ -1,127 +1,131 @@
-import React from "react";
+import Link from "next/link";
+import { Facebook, Instagram, Twitter, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-function Footer() {
+export default function Footer() {
   return (
-    <>
-      <div className="flex flex-col px-40 pt-20 pb-8 bg-gray-200 max-md:px-5">
-        <div className="flex flex-col w-full max-w-[1120px] max-md:max-w-full">
-          <div className="flex flex-wrap gap-8 items-start max-md:max-w-full">
-            <div className="flex flex-col items-start min-w-[240px] w-[352px]">
-              <div className="max-w-full text-2xl font-medium leading-none text-center text-black w-[105px]">
-                <span className="text-neutral-900">.</span>
-              </div>
-              <div className="flex flex-col mt-8 w-40 max-w-full text-sm leading-loose text-neutral-900">
-                <div className="flex flex-col w-full">
-                  <div className="flex flex-col w-full">
-                    <div></div>
-                    <div className="mt-2"></div>
-                    <div className="mt-2"></div>
-                  </div>
-                  <div className="mt-5"></div>
-                </div>
-              </div>
-              <div className="flex gap-6 items-start mt-8">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/2d19ff509b365e97aba6720d71c6c948281af0c8?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                  className="object-contain shrink-0 w-6 aspect-square"
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/b5eb4881c53eb69315da0358928d2636b6e07d1e?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                  className="object-contain shrink-0 w-6 aspect-square"
-                />
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/1d4737f983b7909bba56b36a94244c9212bc1e16?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                  className="object-contain shrink-0 w-6 aspect-square"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col w-40 text-neutral-900">
-              <div className="text-base font-medium">Page</div>
-              <div className="flex flex-col mt-10 text-sm leading-loose w-[84px]">
-                <div>Home</div>
-                <div className="mt-6">Shop</div>
-                <div className="mt-6">Product</div>
-                <div className="mt-6">Articles</div>
-                <div className="mt-6">Contact Us</div>
-              </div>
-            </div>
-            <div className="flex flex-col w-40 text-neutral-900">
-              <div className="text-base font-medium">Info</div>
-              <div className="flex flex-col self-start mt-10 text-sm leading-loose">
-                <div>Shipping Policy</div>
-                <div className="mt-6">Return & Refund</div>
-                <div className="mt-6">Support</div>
-                <div className="mt-6">FAQs</div>
-              </div>
-            </div>
-            <div className="flex flex-col min-w-[240px] w-[352px]">
-              <div className="text-base font-semibold leading-loose text-neutral-900">
-                Join Newsletter
-              </div>
-              <div className="flex flex-col mt-10 w-full max-w-[352px]">
-                <div className="text-sm leading-6 text-neutral-900">
-                  Subscribe our newsletter to get more deals, new products and
-                  promotions
-                </div>
-                <div className="flex overflow-hidden gap-10 justify-end py-2 pr-2 pl-4 mt-6 w-full rounded-[90px]">
-                  <div className="my-auto text-sm leading-loose text-zinc-500">
-                    Enter your email
-                  </div>
-                  <div className="flex gap-2.5 justify-center items-center px-1 w-8 h-8 bg-blue-500 rounded-[100px]">
-                    <img
-                      loading="lazy"
-                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/6853dc1af7e4c6e487ad9dfb620f1df064882772?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                      className="object-contain self-stretch my-auto w-6 aspect-square"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col justify-center py-8 mt-16 w-full border-t border-solid border-t-zinc-500 min-h-[96px] max-md:mt-10 max-md:max-w-full">
-            <div className="flex justify-between items-center w-full max-md:max-w-full">
-              <div className="flex flex-wrap gap-4 items-start self-stretch my-auto text-xs leading-loose min-w-[240px] text-neutral-900 w-[1120px] max-md:max-w-full">
-                <div>Copyright © 2025  All rights reserved</div>
-                <div className="flex gap-4 justify-center items-center pl-4 text-right border-l border-solid border-l-zinc-500 border-zinc-500">
-                  <div className="self-stretch my-auto">Privacy Policy</div>
-                  <div className="self-stretch my-auto">Terms & Conditions</div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center self-stretch my-auto min-w-[240px] w-[328px]">
-                <div className="flex flex-col self-stretch my-auto w-12">
-                  <div className="flex shrink-0 h-8 bg-white rounded" />
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/0efd08fdf436dd3319fce816185d098b63d4a1c3?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                  className="object-contain shrink-0 self-stretch my-auto w-12 aspect-[1.5]"
-                />
-                <div className="flex flex-col self-stretch my-auto w-12">
-                  <div className="flex shrink-0 h-8 bg-white rounded" />
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/623b3a321ebaee3c253b06d3f85e4544e5475c4e?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                  className="object-contain shrink-0 self-stretch my-auto w-12 aspect-[1.5]"
-                />
-                <div className="flex flex-col self-stretch my-auto w-12">
-                  <div className="flex shrink-0 h-8 bg-white rounded" />
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/2993ef06d28d31353b434247601be7879a57ac86?placeholderIfAbsent=true&apiKey=12ab9d8d2f324604bf4033a7048c5d60"
-                  className="object-contain shrink-0 self-stretch my-auto w-12 aspect-[1.5]"
-                />
-              </div>
-            </div>
+    <footer className="bg-muted py-12 md:py-20">
+      <div className="container px-40 grid grid-cols-1 gap-8 md:grid-cols-4 lg:grid-cols-5">
+        {/* Brand/Logo and Social Media */}
+        <div className="flex flex-col items-start col-span-1 md:col-span-2 lg:col-span-2">
+          <Link href="/" className="text-2xl font-semibold text-foreground">
+            FashionHub
+          </Link>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Your trusted partner for innovative solutions.
+          </p>
+          <div className="flex gap-4 mt-6">
+            <Link
+              href="#"
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Facebook"
+            >
+              <Facebook className="h-5 w-5" />
+            </Link>
+            <Link
+              href="#"
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Twitter"
+            >
+              <Twitter className="h-5 w-5" />
+            </Link>
+            <Link
+              href="#"
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Instagram"
+            >
+              <Instagram className="h-5 w-5" />
+            </Link>
           </div>
         </div>
+
+        {/* Navigation Links - Pages */}
+        <nav className="flex flex-col gap-4">
+          <h3 className="text-base font-medium text-foreground">Pages</h3>
+          <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+            <li>
+              <Link href="#" className="hover:underline underline-offset-4">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/shop/products" className="hover:underline underline-offset-4">
+                Shop
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        {/* Navigation Links - Info */}
+        <nav className="flex flex-col gap-4">
+          <h3 className="text-base font-medium text-foreground">Info</h3>
+          <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+            <li>
+              <Link href="#" className="hover:underline underline-offset-4">
+                Shipping Policy
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:underline underline-offset-4">
+                Return & Refund
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:underline underline-offset-4">
+                Support
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:underline underline-offset-4">
+                FAQs
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        {/* Newsletter Signup */}
+        <div className="flex flex-col gap-4 col-span-1 md:col-span-2 lg:col-span-1">
+          <h3 className="text-base font-medium text-foreground">
+            Join Newsletter
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Subscribe to our newsletter to get more deals, new products, and
+            promotions.
+          </p>
+          <form className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 bg-white"
+            />
+            <Button type="submit" size="icon" className="shrink-0">
+              <Send className="h-5 w-5" />
+              <span className="sr-only">Subscribe</span>
+            </Button>
+          </form>
+        </div>
       </div>
-    </>
+
+      {/* Bottom Section: Copyright and Payment Methods */}
+      <div className="container mt-12 pt-8  px-40 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <div>
+            &copy; {new Date().getFullYear()} FashionHub. All rights reserved.
+          </div>
+          <div className="flex gap-4 pl-4 border-l border-border max-md:border-l-0 max-md:pt-4 max-md:pl-0 max-md:border-t">
+            <Link href="#" className="hover:underline underline-offset-4">
+              Privacy Policy
+            </Link>
+            <Link href="#" className="hover:underline underline-offset-4">
+              Terms & Conditions
+            </Link>
+          </div>
+        </div>
+        <div className="flex gap-2 items-center">
+          {/* image for payment only put stripe */}
+        </div>
+      </div>
+    </footer>
   );
 }
-
-export default Footer;

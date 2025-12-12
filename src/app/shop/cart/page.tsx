@@ -13,19 +13,16 @@ import Loader from "@/app/Loader";
 import { useRouter } from "next/navigation";
 import { setSummary } from "../redux/features/order_summary_feature/orderSlice";
 import { useAppDispatch } from "../redux/hooks/hooks";
-
+import { toastingError } from "@/lib/toast_message/toastingErrors";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
 
 export default function CartPage() {
-  // const [promoCode, setPromoCode] = useState("");
-  const [promoDiscount, setPromoDiscount] = useState(0);
-  // const [promoError, setPromoError] = useState("");
-  // const [promoSuccess, setPromoSuccess] = useState("");
   const [shippingMethod, setShippingMethod] = useState("standard");
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   const {
-    data: cartItems,
+    data: cartItems = { cart: { items: [] } },
     isSuccess,
     isLoading,
     isError,
@@ -38,7 +35,7 @@ export default function CartPage() {
     throw new Error("failed fetching cart data");
   }
   // Calculate cart totals
-  const subtotal = cartItems?.cart.items.reduce(
+  const subtotal = cartItems.cart.items.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0
   );
@@ -50,8 +47,8 @@ export default function CartPage() {
       ? 5.99
       : 0;
   const taxRate = 0.08;
-  const taxAmount = (subtotal - promoDiscount) * taxRate;
-  const total = subtotal  + shippingCost + taxAmount;
+  const taxAmount = subtotal * taxRate;
+  const total = subtotal + shippingCost + taxAmount;
 
   // Update item quantity
   const updateQuantity = async (
@@ -65,7 +62,10 @@ export default function CartPage() {
       quantity: newQty,
     };
 
-    await updatingQtyOfProduct(item);
+    const res = await updatingQtyOfProduct(item);
+    if (!res.data) {
+      toastingError(res.error);
+    }
   };
 
   // Remove item from cart
@@ -73,33 +73,13 @@ export default function CartPage() {
     const item = {
       id: cartId,
     };
-    await deletingCartItem(item);
+    const res = await deletingCartItem(item);
+    if (res.data) {
+      toastingSuccess(res.data.message);
+    } else {
+      toastingError(res.error);
+    }
   };
-
-  // Apply promo code
-  // const applyPromoCode = () => {
-  //   // Reset previous messages
-  //   setPromoError("");
-  //   setPromoSuccess("");
-
-  //   // Simple validation
-  //   if (!promoCode.trim()) {
-  //     setPromoError("Please enter a promo code");
-  //     return;
-  //   }
-
-  //   // Mock promo code validation
-  //   if (promoCode.toUpperCase() === "DISCOUNT20") {
-  //     const discount = subtotal * 0.2;
-  //     setPromoDiscount(discount);
-  //     setPromoSuccess("20% discount applied successfully!");
-  //   } else if (promoCode.toUpperCase() === "FREESHIP") {
-  //     setShippingMethod("free");
-  //     setPromoSuccess("Free shipping applied successfully!");
-  //   } else {
-  //     setPromoError("Invalid promo code");
-  //   }
-  // };
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -110,14 +90,43 @@ export default function CartPage() {
     const summary = {
       subtotal: subtotal,
       shippingCost: shippingCost,
-      tax:taxAmount,
+      tax: taxAmount,
       total: total,
-      cartItems:cartItems.cart.items,
+      cartItems: cartItems.cart.items,
     };
 
     dispatch(setSummary(summary));
 
     router.push("/shop/cart/checkout");
+  };
+
+  const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      e.ctrlKey &&
+      (e.key === "a" || e.key === "x" || e.key === "c" || e.key === "v")
+    ) {
+      return;
+    }
+
+    if (
+      [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "Home",
+        "End",
+      ].includes(e.key)
+    ) {
+      return;
+    }
+
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -152,7 +161,7 @@ export default function CartPage() {
                 Looks like you have not added any items to your cart yet.
               </p>
               <Link
-                href={'/shop/products'}
+                href={"/shop/products"}
                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-black"
               >
                 Continue Shopping
@@ -205,8 +214,8 @@ export default function CartPage() {
                                 </h3>
                                 <div className="mt-1 flex items-center text-sm text-gray-500">
                                   <span>Color: {item.color}</span>
-                                <span className="mx-2">•</span>
-                                <span>Size: {item.size}</span>
+                                  <span className="mx-2">•</span>
+                                  <span>Size: {item.size}</span>
                                 </div>
                                 <div className="mt-1 text-sm font-medium text-gray-900">
                                   <div className="flex items-center">
@@ -225,7 +234,7 @@ export default function CartPage() {
                                       updateQuantity(
                                         item.id,
                                         item.product.id,
-                                        item.quantity - 1
+                                        Math.max(1, item.quantity - 1)
                                       )
                                     }
                                     className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
@@ -233,12 +242,44 @@ export default function CartPage() {
                                   >
                                     <Minus className="h-4 w-4" />
                                   </button>
+
                                   <input
-                                    type="number"
-                                    min="1"
-                                    value={item.quantity}
+                                    type="text"
+                                    value={item.quantity ?? ""}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      if (/^\d*$/.test(val)) {
+                                        updateQuantity(
+                                          item.id,
+                                          item.product.id,
+                                          val === "" ? null : Number(val)
+                                        );
+                                      }
+                                    }}
+                                    onKeyDown={handleQuantityKeyDown}
+                                    onPaste={(e) => {
+                                      const paste =
+                                        e.clipboardData.getData("text");
+                                      if (!/^\d*$/.test(paste)) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      if (item.quantity !== null) {
+                                        const clamped = Math.max(
+                                          1,
+                                          item.quantity
+                                        );
+                                        updateQuantity(
+                                          item.id,
+                                          item.product.id,
+                                          clamped
+                                        );
+                                      }
+                                    }}
                                     className="mx-2 w-12 text-center border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
                                   />
+
                                   <button
                                     onClick={() =>
                                       updateQuantity(
@@ -252,6 +293,7 @@ export default function CartPage() {
                                     <Plus className="h-4 w-4" />
                                   </button>
                                 </div>
+
                                 <div className="mt-2 text-right">
                                   <span className="text-sm font-medium text-gray-900">
                                     Subtotal:{" "}
@@ -390,14 +432,6 @@ export default function CartPage() {
                           {formatCurrency(subtotal)}
                         </p>
                       </div>
-                      {promoDiscount > 0 && (
-                        <div className="flex justify-between text-sm">
-                          <p className="text-gray-500">Discount</p>
-                          <p className="text-green-600 font-medium">
-                            -{formatCurrency(promoDiscount)}
-                          </p>
-                        </div>
-                      )}
                       <div className="flex justify-between text-sm">
                         <p className="text-gray-500">Shipping</p>
                         <p className="text-gray-900 font-medium">

@@ -1,34 +1,34 @@
-import { axiosBaseQueryShop } from "@/lib/axios/axiosBaseQueryShop";
+import { axiosBaseQueryCrm } from "@/lib/axios/axiosBaseQueryCRM";
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 type incomingGetData = {
-    user:customerData,
+    user:adminData,
     message:string
 }
 
-export const customerInfoApi = createApi({
-    reducerPath: 'customerInfoApi',
-    baseQuery: axiosBaseQueryShop(),
-    tagTypes: ['CustomerInfo'],
+export const adminInfoApi = createApi({
+    reducerPath: 'adminInfoApi',
+    baseQuery: axiosBaseQueryCrm(),
+    tagTypes: ['AdminInfo'],
     endpoints: (build) => ({
-        getCustomerInfo: build.query<incomingGetData,void>({
+        getAdminInfo: build.query<incomingGetData,void>({
             query: () => ({
-                url:'auth/customerInfo',
+                url:'auth/adminInfo',
                 method:'GET'
             }),
-            providesTags: ['CustomerInfo'],
+            providesTags: ['AdminInfo'],
         }),
-        updateCustomerInfoName: build.mutation({
+        updateAdminInfoName: build.mutation({
             query: (followingItem) => ({
-                url:'profile/updateCustomerName',
+                url:'profile/updateAdminName',
                 method:'PATCH',
                 data:followingItem
             }),
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 // update cache before api response
                 const patchResult = dispatch(
-                    customerInfoApi.util.updateQueryData(
-                        'getCustomerInfo',
+                    adminInfoApi.util.updateQueryData(
+                        'getAdminInfo',
                         undefined,
                         (draft) => {
                             if (draft.user) {
@@ -45,18 +45,18 @@ export const customerInfoApi = createApi({
                     patchResult.undo();
                 }
             },
-            invalidatesTags: ['CustomerInfo'],
+            invalidatesTags: ['AdminInfo'],
         }),
-        updateCustomerInfoEmail: build.mutation({
+        updateAdminInfoEmail: build.mutation({
             query: (followingItem) => ({
-                url:'profile/updateCustomerEmail',
+                url:'profile/updateAdminEmail',
                 method:'PATCH',
                 data:followingItem
             }),
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 const patchResult = dispatch(
-                    customerInfoApi.util.updateQueryData(
-                        'getCustomerInfo',
+                    adminInfoApi.util.updateQueryData(
+                        'getAdminInfo',
                         undefined,
                         (draft) => {
                             if (draft.user) {
@@ -72,9 +72,9 @@ export const customerInfoApi = createApi({
                     patchResult.undo();
                 }
             },
-            invalidatesTags: ['CustomerInfo'],
+            invalidatesTags: ['AdminInfo'],
         }),
     })
 })
 
-export const { useGetCustomerInfoQuery , useUpdateCustomerInfoNameMutation , useUpdateCustomerInfoEmailMutation } = customerInfoApi;
+export const { useGetAdminInfoQuery , useUpdateAdminInfoNameMutation , useUpdateAdminInfoEmailMutation } = adminInfoApi;

@@ -12,10 +12,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
   const admin_info = useAdminInfo();
 
-  if (!admin_info) {
-    return "user not found";
-  }
-
   return (
     <div className="max-w-3xl mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">Account Settings</h1>

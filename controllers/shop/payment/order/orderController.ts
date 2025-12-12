@@ -4,9 +4,8 @@ import { decodeToken } from "../../../../_lib_backend/token/decodeToken";
 import { ValidateCreateOrder } from "../../../../_lib_backend/validation/orderValidation";
 import { addingOrder, gettingOrder } from "../../../../models/shop/payment/order/orderModels";
 
-export const createOrder = async (res: NextApiResponse, req: NextApiRequest) => {
+export const createOrder = async (req:NextApiRequest, res:NextApiResponse) => {
   try {
-    
     const data:CreateOrderPayload = zodValidatorHelper(ValidateCreateOrder,req.body,res)
     
     const creatingOrder= await addingOrder(data);
@@ -23,7 +22,7 @@ export const createOrder = async (res: NextApiResponse, req: NextApiRequest) => 
   }
 };
 
-export const getOrder = async (res: NextApiResponse, req: NextApiRequest) => {
+export const getOrder = async (req:NextApiRequest, res:NextApiResponse) => {
   try {
     const tokenData = await decodeToken(req.headers.authorization);
 

@@ -17,6 +17,7 @@ import { toastingError } from "@/lib/toast_message/toastingErrors";
 import { useGetCardQuery } from "../../redux/services/cardApi";
 import axiosClient from "@/lib/axios/axiosClient";
 import { useGetCustomerInfoQuery } from "../../redux/services/customerInfoApi";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
@@ -32,6 +33,8 @@ export default function CheckoutPage() {
     country: "",
   });
 
+  const router = useRouter();
+  
   const {
     data: savedCreditCards,
     isLoading: isLoadingGetCard,
@@ -46,10 +49,8 @@ export default function CheckoutPage() {
     undefined
   );
 
-      const {
-    data: customerInfo,
-    isError: isCustomerInfoError,
-  } = useGetCustomerInfoQuery();
+  const { data: customerInfo, isError: isCustomerInfoError } =
+    useGetCustomerInfoQuery();
 
   if (isCustomerInfoError) {
     throw new Error("Failed Getting Customer Info");
@@ -66,7 +67,9 @@ export default function CheckoutPage() {
 
   const isAnyAddressLoading = isLoadingGetAddress || isLoadingCreatingAddress;
 
-  const summary = useAppSelector((state) => state.order.summary);
+  const summary: OrderSummary | null = useAppSelector(
+    (state) => state.order.summary
+  );
 
   useEffect(() => {
     if (isSuccessGetAddress && savedAddresses.all_Address.length > 0) {
@@ -78,7 +81,7 @@ export default function CheckoutPage() {
     return "failed to get address";
   }
 
-  if (!summary) {
+  if (!summary || summary === null) {
     return console.log("error order summary");
   }
 
@@ -136,33 +139,29 @@ export default function CheckoutPage() {
     if (step === 1) {
       setStep(2);
       window.scrollTo(0, 0);
-    } else {
-      // In a real app, you would process the payment and create the order here
-      console.log("Order submitted");
-      // Redirect to confirmation page
-      // window.location.href = "/order-confirmation"
-    }
+    } 
   };
-
-  
 
   const handleSubmitPayment = async () => {
     try {
       const res = await axiosClient.post("payment/stripe/checkout", {
         amount: Math.round(total * 100), // $25.00
-        cardId: selectedCreditCard?.id, 
+        cardId: selectedCreditCard?.id,
       });
-      alert("done");
-       handlePaymentSuccess(res.data.paymentIntent.id);
+      toastingSuccess("Payment successful!");
+      handlePaymentSuccess(res.data.paymentIntent.id);
     } catch (err) {
-      alert("failed");
+      toastingError(`Payment failed. Please try again, ${err}`);
     }
   };
 
-  const handlePaymentSuccess = async (paymentIntent) => {
-    const item:CreateOrderPayload = {
+  const handlePaymentSuccess = async (paymentIntent: string) => {
+    if (!customerInfo ) {
+      console.log("No customer ID found");
+    }
+    const item: CreateOrderPayload = {
       stripePaymentIntentId: paymentIntent,
-      customerId: customerInfo?.user.id,
+      customerId: customerInfo.user.id,
       total: Math.round(total * 100), // in cents
       currency: "usd",
       orderItem: summary.cartItems.map((item) => ({
@@ -172,11 +171,17 @@ export default function CheckoutPage() {
         color: item.color,
         size: item.size,
         quantity: item.quantity,
-        price: item.product.price, 
+        price: item.product.price,
       })),
     };
 
-    await axiosClient.post("payment/order/orderMethods", item);
+    const res = await axiosClient.post("payment/order/orderMethods", item);
+    if (res.data.message) {
+      toastingSuccess("Order placed successfully!", () =>router.push("/settings/profile"));
+      localStorage.removeItem("orderSummary");
+    } else {
+      toastingError(`Failed to create order: ${res.data.error}`);
+    }
   };
 
   return (
@@ -459,7 +464,9 @@ export default function CheckoutPage() {
                           </p>
                         </div>
                         <div className="mt-1 flex items-center text-sm text-gray-500">
-                          <span>{item.color} / {item.size}</span>
+                          <span>
+                            {item.color} / {item.size}
+                          </span>
                           <span className="mx-2">•</span>
                           <span>Qty {item.quantity}</span>
                         </div>

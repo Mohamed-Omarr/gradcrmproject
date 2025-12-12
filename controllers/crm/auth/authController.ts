@@ -148,6 +148,7 @@ export const frequentLogout = async (req:NextApiRequest,res:NextApiResponse) => 
 export const info_of_user = async (req:NextApiRequest,res:NextApiResponse) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
+        
         if (!token) {
             return res.status(401).json("Not Authorized User");
         }
@@ -155,6 +156,7 @@ export const info_of_user = async (req:NextApiRequest,res:NextApiResponse) => {
         const decoded = jwt.decode(token) as {role:string}
         
         const result = await verifyToken(token,decoded.role); 
+        
         if (!result.success && result.status){
             return res.status(result.status).json({message:"User not found",error:result.DBerror})
         }else if (!result.success){

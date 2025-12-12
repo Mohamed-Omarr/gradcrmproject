@@ -15,20 +15,25 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAdminInfo } from "@/hooks/crm/share-admin-context";
 import { useRouter } from "next/navigation";
 import axiosAdmin from "@/lib/axios/axiosAdmin";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
 
 export function Header() {
   const admin_info = useAdminInfo();
   const router = useRouter();
 
   const onLogout = async () => {
-    await axiosAdmin
-      .post("auth/logout", {
-        userId: admin_info?.id,
-        userRole: admin_info?.role,
-      })
-      .then(() => localStorage.removeItem("access_token"))
-      .catch((err) => console.error(err));
-  };
+  try {
+    await axiosAdmin.post("auth/logout", {
+      userId: admin_info.id,
+      userRole: admin_info.role,
+    });
+    localStorage.removeItem("access_token");
+    router.push("/crm/login");
+  } catch (err) {
+    toastingError(err);
+  }
+};
+
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-16 lg:px-6">
@@ -60,9 +65,9 @@ export function Header() {
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div className="hidden text-left md:block">
-                <p className="text-sm font-medium">{admin_info?.name}</p>
+                <p className="text-sm font-medium">{admin_info.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {admin_info?.email}
+                  {admin_info.email}
                 </p>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />

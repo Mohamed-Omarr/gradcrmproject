@@ -54,7 +54,7 @@ axiosAdmin.interceptors.request.use(
                   onRefreshed(data.accessToken)
                   console.log("done refresh token")
                 }catch(err){
-                  frequentExit();
+                  // frequentExit();
                   throw err;
                 }finally{
                   isRefresh = false;
@@ -67,7 +67,7 @@ axiosAdmin.interceptors.request.use(
           config.headers.Authorization = `Bearer ${accessToken}`;
       } catch (err) {
         console.log("vialed access Token error- must log out the user right now:", err);
-        frequentExit();
+        // frequentExit();
         return Promise.reject(err);
       }
 
@@ -86,7 +86,7 @@ axiosAdmin.interceptors.response.use(
     // If token is expired 
     if (err.response?.status === 401) {
       localStorage.removeItem("access_token");
-      frequentExit();
+      // frequentExit();
     }
   
     return Promise.reject(err);

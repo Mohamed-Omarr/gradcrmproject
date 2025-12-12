@@ -71,7 +71,7 @@ axiosClient.interceptors.request.use(
         return Promise.reject(err);
       }
 
-    config.headers["Content-Type"] = "application/x-www-form-urlencoded";
+    config.headers["Content-Type"] = "application/json";
     config.headers["Accept"] = "application/json";
 
     return config;

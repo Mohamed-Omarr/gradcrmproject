@@ -71,7 +71,7 @@ export default function Categories() {
     };
     const res = await deleteCategory(itemData);
     if (res.data) {
-      toastingSuccess(res.data?.message);
+      toastingSuccess(res.data.message);
     } else {
       toastingError(res.error);
     }

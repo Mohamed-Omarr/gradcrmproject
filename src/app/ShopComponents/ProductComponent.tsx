@@ -136,7 +136,6 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
 
   const submitReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       const item = {
         customerId: customerInfo?.user.id,
@@ -148,23 +147,18 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
       const creating = await creatingReview(item);
 
       if (creating.data) {
-        router.refresh();
         handleRestNewReview();
-        toastingSuccess(creating.data.message);
+        toastingSuccess(creating.data.message, router.refresh);
       } else {
-        toastingError(
-          creating.error || "Something went wrong while submitting your review."
-        );
+        toastingError(creating.error);
       }
     } catch (error) {
-      console.error(error);
       toastingError("Something went wrong while submitting your review.");
     }
   };
 
   const updateReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       const item = {
         id: editingReviewId,
@@ -177,16 +171,12 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
       const updating = await updatingReview(item);
 
       if (updating.data) {
-        router.refresh();
         handleRestEditReview();
-        toastingSuccess(updating.data.message);
+        toastingSuccess(updating.data.message, router.refresh);
       } else {
-        toastingError(
-          updating.error || "Something went wrong while updating your review."
-        );
+        toastingError(updating.error);
       }
     } catch (error) {
-      console.error(error);
       toastingError("Something went wrong while updating your review.");
     }
   };
@@ -201,9 +191,8 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
     const deleting = await deletingReview(item);
 
     if (deleting.data) {
-      router.refresh();
       setDeleteReviewId(undefined);
-      toastingSuccess(deleting.data.message);
+      toastingSuccess(deleting.data.message, router.refresh);
     } else {
       toastingError(deleting.error);
     }
@@ -211,7 +200,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
 
   const addingToCart = async (item: ShopProduct) => {
     if (!isAuthed) {
-      toastingInfo("Login", router);
+      toastingInfo("Please Login to add to Cart", router);
       return;
     }
 
@@ -221,25 +210,26 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
       size: selectedSize,
       color: selectedColor,
     };
+    
 
     const res = await addToCart(product);
 
     if (res.data) {
-      console.log("yes");
+      toastingSuccess(res.data.message, router.refresh);
     } else {
-      console.log("no");
+      toastingError(res.error);
     }
   };
 
   const addingToWishlist = async (itemId: number) => {
-    if (!isAuthed) {
-      toastingInfo("Login", router);
+    if (!isAuthed || !customerInfo) {
+      toastingInfo("Please Login to add to Favorite", router);
       return;
     }
 
     const item = {
       productId: itemId,
-      customerId: customerInfo?.user.id,
+      customerId: customerInfo.user.id,
     };
 
     const res = await addToWishlistItem(item);
@@ -252,9 +242,13 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
   };
 
   const removeFromWishList = async (itemId: number) => {
+    if (!isAuthed || !customerInfo) {
+      toastingInfo("Please Login to remove from Favorite", router);
+      return;
+    }
     const item = {
       productId: itemId,
-      customerId: customerInfo?.user.id,
+      customerId: customerInfo.user.id,
     };
     const res = await removeWishListItem(item);
     if (res.data) {
@@ -315,7 +309,7 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
   }, [customerCommentExits]);
 
   if (isCustomerInfoError) {
-    toastingInfo("Login", router);
+    toastingInfo("Login Please", router);
     return;
   }
 
@@ -381,11 +375,11 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
               {product.ratings.length > 0 && (
                 <div className="flex items-center mt-2 mb-4">
                   <div className="flex items-center">
-                    {product.ratings.map((star, i) => (
+                    {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
                         className={`h-5 w-5 ${
-                          i < star.score
+                          i < Math.round(avgRatingScore)
                             ? "text-yellow-400 fill-yellow-400"
                             : "text-gray-300"
                         }`}
@@ -583,11 +577,11 @@ export default function ProductIdPage({ product }: { product: ShopProduct }) {
                       </span>
                       <div className="flex flex-col">
                         <div className="flex">
-                          {product.ratings.map((star, i) => (
+                          {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
                               className={`h-5 w-5 ${
-                                i < Math.floor(star.score)
+                                i < Math.round(avgRatingScore)
                                   ? "text-yellow-400 fill-yellow-400"
                                   : "text-gray-300"
                               }`}

@@ -202,14 +202,17 @@ model Cart {
 model CartItem {
   id        Int     @id @default(autoincrement())
   product   Product @relation(fields: [productId], references: [id])
-  productId Int     @unique
+  productId Int
   cart      Cart    @relation(fields: [cartId], references: [id])
   cartId    Int
   quantity  Int
 
   size  String
   color String
+
+  @@unique([cartId, productId, size, color])
 }
+
 
 // Address of customer
 model Address {

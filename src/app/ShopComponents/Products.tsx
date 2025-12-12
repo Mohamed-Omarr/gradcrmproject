@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
@@ -13,11 +14,14 @@ import {
 } from "../shop/redux/services/wishlistApi";
 import { useRouter } from "next/navigation";
 import { toastingInfo } from "@/lib/toast_message/toastingInfo";
+import { useEffect, useState } from "react";
 
 function Products({ product }: { product: ShopProduct[] }) {
+  const [wishlistMap, setWishlistMap] = useState<{
+    [productId: number]: boolean;
+  }>({});
   const isAuthed = IsCustomerAuthed();
   const router = useRouter();
-
 
   const {
     data: customerInfo,
@@ -31,8 +35,8 @@ function Products({ product }: { product: ShopProduct[] }) {
   const [addToWishlistItem] = useAddToWishlistItemMutation();
 
   const addingToCart = async (item: ShopProduct) => {
-     if (!isAuthed) {
-      toastingInfo("Login",router)
+    if (!isAuthed || !customerInfo) {
+      toastingInfo("Please Login to add to cart", router);
       return;
     }
 
@@ -53,52 +57,64 @@ function Products({ product }: { product: ShopProduct[] }) {
   };
 
   const addingToWishlist = async (itemId: number) => {
-    if (!isAuthed) {
-      toastingInfo("Login",router)
+    if (!isAuthed || !customerInfo) {
+      toastingInfo("Please Login to add to Favorite", router);
       return;
     }
     const item = {
       productId: itemId,
-      customerId: customerInfo?.user.id,
+      customerId: customerInfo.user.id,
     };
 
     const res = await addToWishlistItem(item);
 
     if (res.data) {
+      setWishlistMap((prev) => ({ ...prev, [itemId]: true }));
       toastingSuccess(res.data.message);
-      router.refresh();
     } else {
       toastingError(res.error);
     }
   };
 
   const removeFromWishList = async (itemId: number) => {
-    if (!isAuthed) {
-      toastingInfo("Login",router)
+    if (!isAuthed || !customerInfo) {
+      toastingInfo("Please Login to remove from Favorite", router);
       return;
     }
     const item = {
       productId: itemId,
-      customerId: customerInfo?.user.id,
+      customerId: customerInfo.user.id,
     };
     const res = await removeWishListItem(item);
     if (res.data) {
-      toastingSuccess(res.data.message, router.refresh);
+      setWishlistMap((prev) => ({ ...prev, [itemId]: false }));
+      toastingSuccess(res.data.message);
     } else {
       toastingError(res.error);
     }
   };
 
+  useEffect(() => {
+    if (customerInfo) {
+      const map: { [productId: number]: boolean } = {};
+      product.forEach((item) => {
+        map[item.id] = item.wishlist.some(
+          (i) =>
+            i.customerId === customerInfo.user.id && i.productId === item.id
+        );
+      });
+      setWishlistMap(map);
+    }
+  }, [customerInfo, product]);
 
   if (!product || product.length === 0) {
     return <div>No product available</div>;
   }
 
   if (isCustomerInfoError) {
-    toastingInfo("Login", router);
+    toastingInfo("Please Login", router);
     return;
   }
-
 
   return (
     <>
@@ -114,9 +130,7 @@ function Products({ product }: { product: ShopProduct[] }) {
           >
             {/* Wishlist button */}
             <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              {item.wishlist.some(
-                (i) => i.customerId === customerInfo?.user.id
-              ) ? (
+              {wishlistMap[item.id] ? (
                 <button
                   onClick={() => removeFromWishList(item.id)}
                   className="rounded-full hover:cursor-pointer bg-white p-1.5 shadow-md hover:bg-gray-100 transition-colors"
@@ -134,7 +148,7 @@ function Products({ product }: { product: ShopProduct[] }) {
             </div>
 
             {/* Product image */}
-            <Link href={`/shop/product/${item.id}`} >
+            <Link href={`/shop/product/${item.id}`}>
               <div className="bg-gray-50">
                 <Image
                   src={item.thumbnail}

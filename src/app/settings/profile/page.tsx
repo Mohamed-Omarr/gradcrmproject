@@ -67,7 +67,7 @@ export default function ProfilePage() {
       case "personal":
         return <PersonalInfoTab userData={userData.user} />;
       case "addresses":
-        return <AddressesTab />;
+        return <AddressesTab customerInfo={userData.user} />;
       case "cards":
         return <CardsTab />;
       case "orders":

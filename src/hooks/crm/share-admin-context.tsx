@@ -1,7 +1,7 @@
 "use client";
-import { createContext, useState, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext } from "react";
 
-const adminInfoContext = createContext<adminData | null>(null);
+const adminInfoContext = createContext<adminData | undefined>(undefined);
 
 export function AdminInfoProvider({
   children,
@@ -10,10 +10,9 @@ export function AdminInfoProvider({
   children: ReactNode;
   initialAdminInfo: adminData;
 }) {
-  const [adminInfo] = useState<adminData | null>(initialAdminInfo);
 
   return (
-    <adminInfoContext.Provider value={adminInfo}>
+    <adminInfoContext.Provider value={initialAdminInfo}>
       {children}
     </adminInfoContext.Provider>
   );
@@ -21,5 +20,9 @@ export function AdminInfoProvider({
 
 // custom hook to use admin info
 export function useAdminInfo() {
-  return useContext(adminInfoContext);
+  const context = useContext(adminInfoContext);
+  if (!context) {
+    throw new Error("useAdminInfo must be used within an AdminInfoProvider");
+  }
+  return context;
 }

@@ -9,12 +9,14 @@ type incomingGetData = {
 export const addressApi = createApi({
     reducerPath: 'addressApi',
     baseQuery: axiosBaseQueryShop(),
+    tagTypes: ['Address'],
     endpoints: (build) => ({
         getAddress: build.query<incomingGetData,void>({
             query: () => ({
                 url:'address/addressMethods',
                 method:'GET'
             }),
+            providesTags: ['Address'],
         }),
         addAddress: build.mutation({
             query: (followingItem) => ({
@@ -22,6 +24,7 @@ export const addressApi = createApi({
                 method:'POST',
                 data:followingItem,
             }),
+            invalidatesTags: ['Address'],
         }),
         updateAddress: build.mutation({
             query: (followingItem) => ({
@@ -29,6 +32,7 @@ export const addressApi = createApi({
                 method:'PATCH',
                 data:followingItem,
             }),
+            invalidatesTags: ['Address'],
         }),
         deleteAddress: build.mutation({
             query: (followingItem) => ({
@@ -36,6 +40,7 @@ export const addressApi = createApi({
                 method:'DELETE',
                 data:followingItem,
             }),
+            invalidatesTags: ['Address'],
         }),
     })
 })

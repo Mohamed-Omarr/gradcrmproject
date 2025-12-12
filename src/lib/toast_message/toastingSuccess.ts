@@ -1,26 +1,37 @@
-import {  toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
+type IncomingMsg =
+  | string
+  | { message: string }
+  | { data: { message: string } };
 
-// using RTQ changed the way the message comes so i have changed the function to accepts the new way.
+export const toastingSuccess = (
+  msgOfSuccess: IncomingMsg,
+  onClose?: () => void
+) => {
+  let finalMessage = 'Done Successfully';
 
-// interface successMsg extends AxiosResponse {
-//     data:{
-//         message:string
-//     }
-// }
+  if (typeof msgOfSuccess === 'string') {
+    finalMessage = msgOfSuccess.trim();
+  } else if (
+    typeof msgOfSuccess === 'object' &&
+    'message' in msgOfSuccess &&
+    typeof msgOfSuccess.message === 'string'
+  ) {
+    finalMessage = msgOfSuccess.message.trim();
+  } else if (
+    typeof msgOfSuccess === 'object' &&
+    'data' in msgOfSuccess &&
+    typeof msgOfSuccess.data === 'object' &&
+    msgOfSuccess.data !== null &&
+    'message' in msgOfSuccess.data &&
+    typeof msgOfSuccess.data.message === 'string'
+  ) {
+    finalMessage = msgOfSuccess.data.message.trim();
+  }
 
-export const toastingSuccess = (msgOfSuccess:string,onClose?: ()=>void) => {
-    
-    // check if the following provided
-    if (msgOfSuccess) {
-        toast.success(msgOfSuccess,{
-            autoClose:1000,
-            ...(onClose && { onClose: () => onClose() }),
-        });
-    } else{
-        toast.success("Done Successfully",{
-            autoClose:1000,
-            ...(onClose && { onClose: () => onClose() }),
-        });
-    }
-}
+  toast.success(finalMessage, {
+    autoClose: 500,
+    ...(onClose && { onClose }),
+  });
+};

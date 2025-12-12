@@ -10,7 +10,7 @@ export const addingOrder = async (data: CreateOrderPayload) => {
         currency: data.currency,
         status: "processing", // default on create
         orderItems: {
-          create: data.items.map((item) => ({
+          create: data.orderItem.map((item) => ({
             productId: item.productId,
             name: item.name,
             image: item.image,
@@ -25,6 +25,17 @@ export const addingOrder = async (data: CreateOrderPayload) => {
         orderItems: true,
       },
     });
+
+    await prisma.cartItem.deleteMany({
+      where:{
+        cart: {
+          customerId: data.customerId,
+        },
+        productId:{
+          in: data.orderItem.map((item) => item.productId),
+        }
+      }
+    })
 
     return { success: true };
   } catch (error) {

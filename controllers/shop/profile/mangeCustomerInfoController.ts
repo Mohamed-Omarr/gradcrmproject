@@ -9,7 +9,6 @@ import { customerChangingPassword } from "../../../models/shop/profile/customerC
 
 export const updatingCustomerName = async (req:NextApiRequest,res:NextApiResponse) => {
     try{
-            
             const data = zodValidatorHelper(validationUpdateUsername,req.body,res);
 
             const scanId = await prisma.customer.findUnique({where:{id:data.id}});

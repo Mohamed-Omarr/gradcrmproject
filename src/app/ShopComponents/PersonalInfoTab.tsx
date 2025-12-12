@@ -1,152 +1,187 @@
-"use client"
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { Edit, Save, X } from "lucide-react"
-import { toastingSuccess } from "@/lib/toast_message/toastingSuccess"
-import { toastingError } from "@/lib/toast_message/toastingErrors"
-import axiosClient from "@/lib/axios/axiosClient"
-
+"use client";
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import { Edit, Save, X } from "lucide-react";
+import { toastingSuccess } from "@/lib/toast_message/toastingSuccess";
+import { toastingError } from "@/lib/toast_message/toastingErrors";
+import axiosClient from "@/lib/axios/axiosClient";
+import {
+  useUpdateCustomerInfoEmailMutation,
+  useUpdateCustomerInfoNameMutation,
+} from "../shop/redux/services/customerInfoApi";
+import Loader from "../Loader";
 
 export default function PersonalInfoTab({
   userData,
 }: {
-  userData: customerData
+  userData: customerData;
 }) {
-  const [editMode, setEditMode] = useState(false)
+  const [editMode, setEditMode] = useState<boolean>(false);
   const [formData, setFormData] = useState({
     ...userData,
     password: "",
-  })
-  const [hasChanges, setHasChanges] = useState(false)
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
-  const formRef = useRef<HTMLDivElement>(null)
-  const editButtonRef = useRef<HTMLButtonElement>(null)
-  const [showPasswordChange, setShowPasswordChange] = useState(false)
+  });
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState<boolean>(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState<boolean>(false);
+  const formRef = useRef<HTMLDivElement>(null);
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const [showPasswordChange, setShowPasswordChange] = useState<boolean>(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-  })
-  const [passwordErrors, setPasswordErrors] = useState<{ [key: string]: string }>({})
+  });
+  const [passwordErrors, setPasswordErrors] = useState<{
+    [key: string]: string;
+  }>({});
 
   // Check if name or email has changed (for password requirement)
   const hasNameOrEmailChanged = () => {
-    return formData.name !== userData.name || formData.email !== userData.email
-  }
+    return formData.name !== userData.name || formData.email !== userData.email;
+  };
 
   // Validate password requirements
   const validatePassword = (password: string) => {
-    const errors: string[] = []
-    if (password.length < 8) errors.push("At least 8 characters")
-    if (!/[A-Z]/.test(password)) errors.push("One uppercase letter")
-    if (!/[a-z]/.test(password)) errors.push("One lowercase letter")
-    if (!/\d/.test(password)) errors.push("One number")
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push("One special character")
-    return errors
-  }
+    const errors: string[] = [];
+    if (password.length < 8) errors.push("At least 8 characters");
+    if (!/[A-Z]/.test(password)) errors.push("One uppercase letter");
+    if (!/[a-z]/.test(password)) errors.push("One lowercase letter");
+    if (!/\d/.test(password)) errors.push("One number");
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+      errors.push("One special character");
+    return errors;
+  };
 
   // Validate password change form
   const validatePasswordForm = () => {
-    const errors: { [key: string]: string } = {}
+    const errors: { [key: string]: string } = {};
 
     if (!passwordData.currentPassword) {
-      errors.currentPassword = "Current password is required"
+      errors.currentPassword = "Current password is required";
     }
 
     if (!passwordData.newPassword) {
-      errors.newPassword = "New password is required"
+      errors.newPassword = "New password is required";
     } else {
-      const passwordValidationErrors = validatePassword(passwordData.newPassword)
+      const passwordValidationErrors = validatePassword(
+        passwordData.newPassword
+      );
       if (passwordValidationErrors.length > 0) {
-        errors.newPassword = `Password must have: ${passwordValidationErrors.join(", ")}`
+        errors.newPassword = `Password must have: ${passwordValidationErrors.join(
+          ", "
+        )}`;
       }
     }
 
     if (!passwordData.confirmPassword) {
-      errors.confirmPassword = "Please confirm your new password"
+      errors.confirmPassword = "Please confirm your new password";
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match"
+      errors.confirmPassword = "Passwords do not match";
     }
 
     if (passwordData.currentPassword === passwordData.newPassword) {
-      errors.newPassword = "New password must be different from current password"
+      errors.newPassword =
+        "New password must be different from current password";
     }
 
-    setPasswordErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+    setPasswordErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     const newFormData = {
       ...formData,
       [name]: value,
-    }
+    };
 
-    setFormData(newFormData)
+    setFormData(newFormData);
 
     // Check if there are any changes from original data
-    const hasDataChanges = newFormData.name !== userData.name || newFormData.email !== userData.email
-    setHasChanges(hasDataChanges)
+    const hasDataChanges =
+      newFormData.name !== userData.name ||
+      newFormData.email !== userData.email;
+    setHasChanges(hasDataChanges);
 
     // Clear password if name and email are reverted to original
     if (!hasDataChanges) {
-      setFormData((prev) => ({ ...prev, password: "" }))
+      setFormData((prev) => ({ ...prev, password: "" }));
     }
-  }
+  };
 
   // Handle password form input changes
-  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+  const handlePasswordInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
     setPasswordData({
       ...passwordData,
       [name]: value,
-    })
+    });
 
     // Clear specific error when user starts typing
     if (passwordErrors[name]) {
       setPasswordErrors({
         ...passwordErrors,
         [name]: "",
-      })
+      });
     }
-  }
+  };
+
+  const [updateCustomerName] = useUpdateCustomerInfoNameMutation();
+  const [updateCustomerEmail] = useUpdateCustomerInfoEmailMutation();
 
   // Update user name
   const onUpdatingName = async () => {
     try {
-      const res = await axiosClient.post("profile/updateCustomerName", {
+      const item = {
         id: userData.id,
         previousName: userData.name,
         newName: formData.name,
-      })
-      return toastingSuccess(res.data.message, () => window.location.reload())
+      };
+
+      const res = await updateCustomerName(item);
+      if (res.data) {
+        toastingSuccess(res.data.message);
+      } else {
+        toastingError(res.error);
+      }
     } catch (err) {
-      return toastingError(err)
+      return toastingError(err);
     }
-  }
+  };
 
   // Update user email
   const onUpdatingEmail = async () => {
     try {
-      const res = await axiosClient.post("profile/updateCustomerEmail", {
+      const item = {
         id: userData.id,
         previousEmail: userData.email,
         newEmail: formData.email,
         password: formData.password,
-      })
-      return toastingSuccess(res.data.message, () => window.location.reload())
+      };
+      const res = await updateCustomerEmail(item);
+
+      if (res.data) {
+        toastingSuccess(res.data.message);
+      } else {
+        toastingError(res.error);
+      }
     } catch (err) {
-      return toastingError(err)
+      return toastingError(err);
     }
-  }
+  };
 
   // Handle password change
   const onChangingPassword = async () => {
     if (!validatePasswordForm()) {
-      return
+      return;
     }
+
+    setIsUpdatingPassword(true);
     try {
       const res = await axiosClient.post("profile/updateCustomerPassword", {
         id: userData.id,
@@ -154,22 +189,22 @@ export default function PersonalInfoTab({
         confirmNewPassword: passwordData.confirmPassword,
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
-      })
+      });
 
-      // Reset password form
       setPasswordData({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-      })
-      setShowPasswordChange(false)
-      setPasswordErrors({})
-
-      return toastingSuccess(res.data.message)
+      });
+      setShowPasswordChange(false);
+      setPasswordErrors({});
+      toastingSuccess(res.data.message);
     } catch (err) {
-      return toastingError(err)
+      toastingError(err);
+    } finally {
+      setIsUpdatingPassword(false);
     }
-  }
+  };
 
   // Handle cancel password change
   const handleCancelPasswordChange = () => {
@@ -177,54 +212,51 @@ export default function PersonalInfoTab({
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
-    })
-    setPasswordErrors({})
-    setShowPasswordChange(false)
-  }
+    });
+    setPasswordErrors({});
+    setShowPasswordChange(false);
+  };
 
   // Handle save
   const handleSave = async () => {
-    // Validate password if name or email changed
     if (hasNameOrEmailChanged() && !formData.password) {
-      toastingError("Password is required to update your name or email")
-      return
+      toastingError("Password is required to update your name or email");
+      return;
     }
-
+    setIsSaving(true);
     try {
-      // Update name if changed
       if (formData.name !== userData.name) {
-        await onUpdatingName()
+        await onUpdatingName();
       }
-
-      // Update email if changed
       if (formData.email !== userData.email) {
-        await onUpdatingEmail()
+        await onUpdatingEmail();
       }
-
-      setEditMode(false)
-      setHasChanges(false)
-      setFormData((prev) => ({ ...prev, password: "" }))
+      setEditMode(false);
+      setHasChanges(false);
+      setFormData((prev) => ({ ...prev, password: "" }));
     } catch (error) {
-      console.error("Error updating user data:", error)
+      console.error("Error updating user data:", error);
+    } finally {
+      setIsSaving(false);
     }
-  }
+  };
 
   // Handle cancel edit
   const handleCancelEdit = () => {
     if (hasChanges) {
-      setShowDiscardConfirm(true)
+      setShowDiscardConfirm(true);
     } else {
-      resetForm()
+      resetForm();
     }
-  }
+  };
 
   // Reset form to original data
   const resetForm = () => {
-    setFormData({ ...userData, password: "" })
-    setEditMode(false)
-    setHasChanges(false)
-    setShowDiscardConfirm(false)
-  }
+    setFormData({ ...userData, password: "" });
+    setEditMode(false);
+    setHasChanges(false);
+    setShowDiscardConfirm(false);
+  };
 
   // Handle click outside form
   useEffect(() => {
@@ -237,22 +269,24 @@ export default function PersonalInfoTab({
         !editButtonRef.current.contains(event.target as Node)
       ) {
         if (hasChanges) {
-          setShowDiscardConfirm(true)
+          setShowDiscardConfirm(true);
         } else {
-          resetForm()
+          resetForm();
         }
       }
     }
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [editMode, hasChanges])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [editMode, hasChanges]);
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Personal Information</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          Personal Information
+        </h2>
         {!editMode ? (
           <button
             ref={editButtonRef}
@@ -265,6 +299,7 @@ export default function PersonalInfoTab({
         ) : (
           <div className="flex space-x-2">
             <button
+              disabled={isSaving}
               onClick={handleCancelEdit}
               className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md transition-colors"
             >
@@ -272,10 +307,17 @@ export default function PersonalInfoTab({
               Cancel
             </button>
             <button
+              disabled={!hasChanges || isSaving}
               onClick={handleSave}
-              className="flex items-center text-sm font-medium text-white bg-gray-900 hover:bg-black px-3 py-1.5 rounded-md transition-colors"
+              className={`flex items-center text-sm font-medium text-white 
+          ${
+            isSaving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gray-900 hover:bg-black"
+          } 
+          px-3 py-1.5 rounded-md transition-colors`}
             >
-              <Save className="h-4 w-4 mr-1.5" />
+              {isSaving ? <Loader /> : <Save className="h-4 w-4 mr-1.5" />}
               Save Changes
             </button>
           </div>
@@ -302,9 +344,14 @@ export default function PersonalInfoTab({
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">Discard changes?</h3>
+              <h3 className="text-sm font-medium text-yellow-800">
+                Discard changes?
+              </h3>
               <div className="mt-2 text-sm text-yellow-700">
-                <p>You have unsaved changes. Are you sure you want to discard them?</p>
+                <p>
+                  You have unsaved changes. Are you sure you want to discard
+                  them?
+                </p>
               </div>
               <div className="mt-3 flex space-x-2">
                 <button
@@ -330,12 +377,17 @@ export default function PersonalInfoTab({
       {/* Profile form */}
       <div
         ref={formRef}
-        className={`transition-all duration-200 ${editMode ? "bg-gray-50 p-6 rounded-lg border border-gray-200" : ""}`}
+        className={`transition-all duration-200 ${
+          editMode ? "bg-gray-50 p-6 rounded-lg border border-gray-200" : ""
+        }`}
       >
         {/* Personal Info Form */}
         <div className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Full Name
             </label>
             {editMode ? (
@@ -353,7 +405,10 @@ export default function PersonalInfoTab({
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email Address
             </label>
             {editMode ? (
@@ -373,7 +428,10 @@ export default function PersonalInfoTab({
           {/* Conditional Password Field */}
           {editMode && hasNameOrEmailChanged() && (
             <div className="pt-4 border-t border-gray-200">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Current Password <span className="text-red-500">*</span>
               </label>
               <input
@@ -386,7 +444,9 @@ export default function PersonalInfoTab({
                 className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
                 required
               />
-              <p className="mt-1 text-xs text-gray-500">Password is required to update your name or email address</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Password is required to update your name or email address
+              </p>
             </div>
           )}
         </div>
@@ -395,13 +455,21 @@ export default function PersonalInfoTab({
         {editMode && (
           <div className="mt-6 flex flex-col sm:hidden space-y-2">
             <button
+              disabled={!hasChanges || isSaving}
               onClick={handleSave}
-              className="w-full flex items-center justify-center text-sm font-medium text-white bg-gray-900 hover:bg-black px-3 py-2 rounded-md transition-colors"
+              className={`flex items-center text-sm font-medium text-white 
+          ${
+            isSaving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gray-900 hover:bg-black"
+          } 
+          px-3 py-1.5 rounded-md transition-colors`}
             >
-              <Save className="h-4 w-4 mr-1.5" />
+              {isSaving ? <Loader /> : <Save className="h-4 w-4 mr-1.5" />}
               Save Changes
             </button>
             <button
+              disabled={isSaving}
               onClick={handleCancelEdit}
               className="w-full flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-md transition-colors"
             >
@@ -429,7 +497,10 @@ export default function PersonalInfoTab({
               <div className="space-y-4">
                 {/* Current Password */}
                 <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="currentPassword"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Current Password <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -439,18 +510,25 @@ export default function PersonalInfoTab({
                     value={passwordData.currentPassword}
                     onChange={handlePasswordInputChange}
                     className={`w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
-                      passwordErrors.currentPassword ? "border-red-300" : "border-gray-300"
+                      passwordErrors.currentPassword
+                        ? "border-red-300"
+                        : "border-gray-300"
                     }`}
                     placeholder="Enter your current password"
                   />
                   {passwordErrors.currentPassword && (
-                    <p className="mt-1 text-xs text-red-600">{passwordErrors.currentPassword}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                      {passwordErrors.currentPassword}
+                    </p>
                   )}
                 </div>
 
                 {/* New Password */}
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     New Password <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -460,20 +538,28 @@ export default function PersonalInfoTab({
                     value={passwordData.newPassword}
                     onChange={handlePasswordInputChange}
                     className={`w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
-                      passwordErrors.newPassword ? "border-red-300" : "border-gray-300"
+                      passwordErrors.newPassword
+                        ? "border-red-300"
+                        : "border-gray-300"
                     }`}
                     placeholder="Enter your new password"
                   />
                   {passwordErrors.newPassword && (
-                    <p className="mt-1 text-xs text-red-600">{passwordErrors.newPassword}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                      {passwordErrors.newPassword}
+                    </p>
                   )}
                   {!passwordErrors.newPassword && passwordData.newPassword && (
                     <div className="mt-1">
-                      <div className="text-xs text-gray-600 mb-1">Password strength:</div>
+                      <div className="text-xs text-gray-600 mb-1">
+                        Password strength:
+                      </div>
                       <div className="flex space-x-1">
-                        {validatePassword(passwordData.newPassword).length === 0 ? (
+                        {validatePassword(passwordData.newPassword).length ===
+                        0 ? (
                           <div className="flex-1 h-1 bg-green-500 rounded"></div>
-                        ) : validatePassword(passwordData.newPassword).length <= 2 ? (
+                        ) : validatePassword(passwordData.newPassword).length <=
+                          2 ? (
                           <>
                             <div className="flex-1 h-1 bg-yellow-500 rounded"></div>
                             <div className="flex-1 h-1 bg-gray-200 rounded"></div>
@@ -491,7 +577,10 @@ export default function PersonalInfoTab({
 
                 {/* Confirm Password */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Confirm New Password <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -501,23 +590,32 @@ export default function PersonalInfoTab({
                     value={passwordData.confirmPassword}
                     onChange={handlePasswordInputChange}
                     className={`w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
-                      passwordErrors.confirmPassword ? "border-red-300" : "border-gray-300"
+                      passwordErrors.confirmPassword
+                        ? "border-red-300"
+                        : "border-gray-300"
                     }`}
                     placeholder="Confirm your new password"
                   />
                   {passwordErrors.confirmPassword && (
-                    <p className="mt-1 text-xs text-red-600">{passwordErrors.confirmPassword}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                      {passwordErrors.confirmPassword}
+                    </p>
                   )}
                   {!passwordErrors.confirmPassword &&
                     passwordData.confirmPassword &&
-                    passwordData.newPassword === passwordData.confirmPassword && (
-                      <p className="mt-1 text-xs text-green-600">✓ Passwords match</p>
+                    passwordData.newPassword ===
+                      passwordData.confirmPassword && (
+                      <p className="mt-1 text-xs text-green-600">
+                        ✓ Passwords match
+                      </p>
                     )}
                 </div>
 
                 {/* Password Requirements */}
                 <div className="bg-blue-50 p-3 rounded-md">
-                  <h4 className="text-sm font-medium text-blue-900 mb-2">Password Requirements:</h4>
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">
+                    Password Requirements:
+                  </h4>
                   <ul className="text-xs text-blue-800 space-y-1">
                     <li>• At least 8 characters long</li>
                     <li>• One uppercase letter (A-Z)</li>
@@ -531,12 +629,24 @@ export default function PersonalInfoTab({
                 <div className="flex space-x-3 pt-4">
                   <button
                     onClick={onChangingPassword}
-                    className="flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-black transition-colors"
+                    disabled={isUpdatingPassword}
+                    className={`flex items-center px-4 py-2 
+          ${
+            isUpdatingPassword
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gray-900 hover:bg-black"
+          } 
+          text-white text-sm font-medium rounded-md transition-colors`}
                   >
-                    <Save className="h-4 w-4 mr-1.5" />
+                    {isUpdatingPassword ? (
+                      <Loader />
+                    ) : (
+                      <Save className="h-4 w-4 mr-1.5" />
+                    )}
                     Update Password
                   </button>
                   <button
+                    disabled={isUpdatingPassword}
                     onClick={handleCancelPasswordChange}
                     className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
                   >
@@ -550,5 +660,5 @@ export default function PersonalInfoTab({
         </div>
       )}
     </div>
-  )
+  );
 }

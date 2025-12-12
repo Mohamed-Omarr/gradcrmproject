@@ -15,16 +15,11 @@ export const ValidateCreateOrder = z.object({
         size: z.string(),
         quantity: z.preprocess((val)=>Number(val) ,z.number({message:"type of qty must be a number"}).int({message:"must be integer"}).positive({message:"must be positive number"})),
         price: z.preprocess((val)=>Number(val) ,z.number({message:"type of price must be a number"}).positive({message:"must be positive number"})),
-        image: z
-          .string()
-          .refine((val) => val.startsWith("/uploads/"), {
-            message: "Image path must start with /uploads/",
-          })
+        image: z.string(),
       })
     )
     .min(1, "At least one item is required"),
 });
-
 
 
 // CRM section

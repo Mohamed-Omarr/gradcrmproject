@@ -9,12 +9,14 @@ type incomingGetData = {
 export const wishlistApi = createApi({
     reducerPath: 'wishlistApi',
     baseQuery: axiosBaseQueryShop(),
+    tagTypes: ['Wishlist'],
     endpoints: (build) => ({
         getWishlist: build.query<incomingGetData,void>({
             query: () => ({
                 url:'wishlist/wishlistMethods',
-                method:'GET'
+                method:'GET',
             }),
+            providesTags: ['Wishlist'],
         }),
         addToWishlistItem: build.mutation({
             query: (followingItem) => ({
@@ -22,6 +24,7 @@ export const wishlistApi = createApi({
                 method:'POST',
                 data:followingItem
             }),
+            invalidatesTags: ['Wishlist'],
         }),
         deleteWishlistItem: build.mutation({
             query: (followingItem) => ({
@@ -29,6 +32,7 @@ export const wishlistApi = createApi({
                 method:'DELETE',
                 data:followingItem
             }),
+            invalidatesTags: ['Wishlist'],
         }),
     })
 })

@@ -55,7 +55,7 @@ function ProfileSection(AdminInfo: {
       });
 
       // later change handling the reload of page
-      return toastingSuccess(res, () => window.location.reload());
+      return toastingSuccess(res.data.message, () => window.location.reload());
     } catch (err) {
       return toastingError(err);
     } finally {

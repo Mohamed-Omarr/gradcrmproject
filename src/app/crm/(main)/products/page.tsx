@@ -115,9 +115,6 @@ export default function ProductsPage() {
       fieldResults[field] = result;
     }
 
-    console.log("Validation Results:", fieldResults);
-    console.log("Form Values:", getValues());
-
     // Determine if all fields are valid
     const allValid = Object.values(fieldResults).every(Boolean);
 
@@ -125,6 +122,38 @@ export default function ProductsPage() {
       setStepIndex((prev) => prev + 1);
     }
   };
+
+  
+
+  // fetch data product & category
+  const fetchProduct = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axiosAdmin.get("product/productMethods");
+      setProduct(res.data.products);
+      toastingSuccess(res.data.message);
+    } catch (err) {
+      toastingError(err);
+    }finally{
+    setIsLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axiosAdmin.get("category/categoryMethods");
+      setCategories(res.data.categories);
+      toastingSuccess(res.data.message);
+    } catch (err) {
+      toastingError(err);
+    }
+  };
+
+  useEffect(() => {
+    Promise.all([fetchProduct(), fetchCategories()]);
+  }, []);
+
+  if (!adminInfo) return console.log("Admin info is not available");
 
   const router = useRouter();
   const onSubmit = async (data: any) => {
@@ -143,7 +172,7 @@ export default function ProductsPage() {
       } = data;
 
       const formData = new FormData();
-      formData.append("ownerId", adminInfo?.id);
+      formData.append("ownerId", adminInfo.id);
       formData.append("categoryId", categoryId);
       formData.append("name", name);
       formData.append("description", description);
@@ -197,7 +226,7 @@ export default function ProductsPage() {
           }
         );
 
-        toastingSuccess(res, router.refresh);
+        toastingSuccess(res.data.message, router.refresh);
 
         setProduct(res.data.updatedProduct);
       }
@@ -229,46 +258,16 @@ export default function ProductsPage() {
       const res = await axiosAdmin.delete("product/productMethods", {
         data: {
           id: productId,
-          ownerId: adminInfo?.id,
+          ownerId: adminInfo.id,
         },
       });
-      toastingSuccess(res, router.refresh);
+      toastingSuccess(res.data.message, router.refresh);
     } catch (err) {
       toastingError(err);
     }finally{
       setIsLoading(false);
     }
   };
-
-  // fetch data product & category
-  const fetchProduct = async () => {
-    setIsLoading(true);
-    try {
-      const res = await axiosAdmin.get("product/productMethods");
-      setProduct(res.data.products);
-      toastingSuccess(res);
-    } catch (err) {
-      toastingError(err);
-    }finally{
-    setIsLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const res = await axiosAdmin.get("category/categoryMethods");
-      setCategories(res.data.categories);
-      toastingSuccess(res);
-    } catch (err) {
-      toastingError(err);
-    }
-  };
-
-  useEffect(() => {
-    Promise.all([fetchProduct(), fetchCategories()]);
-  }, []);
-
-  if (!adminInfo) return alert("no admin info");
 
   const handleUpdate = (currentData: Product) => {
     setIsEditing(true);

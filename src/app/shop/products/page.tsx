@@ -34,15 +34,48 @@ export default function AllProductsPage() {
   const [sizes, setSizes] = useState<Sizes[] | []>([]);
   const [filter, setFilter] = useState<{
     categories: string[];
-    priceRange: number[];
+    priceRange: (number | null)[];
     colors: string[];
     sizes: string[];
   }>({
     categories: [],
-    priceRange: [0, 0],
+    priceRange: [null, null],
     colors: [],
     sizes: [],
   });
+  const clamp = (val: number, min: number, max: number) =>
+    Math.min(Math.max(val, min), max);
+
+  const handlePriceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      e.ctrlKey &&
+      (e.key === "a" || e.key === "x" || e.key === "c" || e.key === "v")
+    ) {
+      return;
+    }
+
+    if (
+      [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "Home",
+        "End",
+      ].includes(e.key)
+    ) {
+      return;
+    }
+
+    // Allow only digits 0-9
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const [sortStatus, setSortStatus] = useState<string>("featured");
 
   const isAuthed = IsCustomerAuthed();
@@ -156,12 +189,19 @@ export default function AllProductsPage() {
       );
     }
 
-    if (filter.priceRange[0] > 0 || filter.priceRange[1] > 0) {
-      result = result.filter(
-        (product) =>
-          Number(product.price) >= filter.priceRange[0] &&
-          Number(product.price) <= filter.priceRange[1]
-      );
+    if (filter.priceRange[0] !== null || filter.priceRange[1] !== null) {
+      result = result.filter((product) => {
+        const price = Number(product.price);
+        const min =
+          filter.priceRange[0] === null
+            ? Number.NEGATIVE_INFINITY
+            : filter.priceRange[0];
+        const max =
+          filter.priceRange[1] === null
+            ? Number.POSITIVE_INFINITY
+            : filter.priceRange[1];
+        return price >= min && price <= max;
+      });
     }
 
     if (searchQuery) {
@@ -177,9 +217,6 @@ export default function AllProductsPage() {
       case "price-low-high":
         result = result.sort((a, b) => Number(a.price) - Number(b.price));
         break;
-      case "newest":
-        result = result.filter((product) => product.qty === 0);
-        break;
       default:
         setSortStatus("featured");
         break;
@@ -188,45 +225,39 @@ export default function AllProductsPage() {
     return result;
   }, [filter, products, searchQuery, sortStatus]);
 
-useEffect(() => {
-  if (isProductSuccess && products.products.length > 0) {
-    const prices = products.products
-      .map((p: ShopProduct) => p.price)
-      .filter((p) => p != null);
+  useEffect(() => {
+    if (isProductSuccess && products.products.length > 0) {
+      const prices = products.products
+        .map((p: ShopProduct) => p.price)
+        .filter((p) => p != null);
 
-    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
-    // Deduplicate colors
-    const colors = Array.from(
-      new Map(
-        products.products
-          .flatMap((p) => p.colors)
-          .map((color) => [color.code, color])
-      ).values()
-    );
+      // Deduplicate colors
+      const colors = Array.from(
+        new Map(
+          products.products
+            .flatMap((p) => p.colors)
+            .map((color) => [color.code, color])
+        ).values()
+      );
 
-    // Deduplicate sizes
-    const sizes = Array.from(
-      new Map(
-        products.products
-          .flatMap((p) => p.sizes)
-          .map((size) => [size.code, size])
-      ).values()
-    );
+      // Deduplicate sizes
+      const sizes = Array.from(
+        new Map(
+          products.products
+            .flatMap((p) => p.sizes)
+            .map((size) => [size.code, size])
+        ).values()
+      );
 
-    setColors(colors);
-    setSizes(sizes);
-    setHightPrice(maxPrice);
-    setLowestPrice(minPrice);
-
-    setFilter((prev) => ({
-      ...prev,
-      priceRange: [minPrice, maxPrice],
-    }));
-  }
-}, [isProductSuccess, products]);
-
+      setColors(colors);
+      setSizes(sizes);
+      setHightPrice(maxPrice);
+      setLowestPrice(minPrice);
+    }
+  }, [isProductSuccess, products]);
 
   if (isProductError) {
     return <p>Failed to fetch products</p>;
@@ -271,7 +302,7 @@ useEffect(() => {
   const clearAllFilters = () => {
     setFilter({
       categories: [],
-      priceRange: [lowestPrice, hightPrice],
+      priceRange: [null, null],
       colors: [],
       sizes: [],
     });
@@ -313,7 +344,6 @@ useEffect(() => {
                 <option value="featured">Featured</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
-                <option value="newest">Newest</option>
                 {/* <option value="rating">Top Rated</option> */}
               </select>
               <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-500" />
@@ -399,21 +429,42 @@ useEffect(() => {
                       Minimum Price
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       id="min-price"
-                      min={lowestPrice}
-                      max={hightPrice}
                       className="w-full border border-gray-300 rounded-md py-1 px-2 text-sm"
-                      value={filter.priceRange[0]}
-                      onChange={(e) =>
-                        setFilter((prev) => ({
-                          ...prev,
-                          priceRange: [
-                            Number(e.target.value),
-                            prev.priceRange[1],
-                          ],
-                        }))
-                      }
+                      value={filter.priceRange[0] ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {
+                          setFilter((prev) => ({
+                            ...prev,
+                            priceRange: [
+                              val === "" ? null : Number(val),
+                              prev.priceRange[1],
+                            ],
+                          }));
+                        }
+                      }}
+                      onKeyDown={handlePriceKeyDown}
+                      onPaste={(e) => {
+                        const paste = e.clipboardData.getData("text");
+                        if (!/^\d*$/.test(paste)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onBlur={() => {
+                        setFilter((prev) => {
+                          const val = prev.priceRange[0];
+                          if (val === null) return prev;
+                          return {
+                            ...prev,
+                            priceRange: [
+                              Math.min(Math.max(val, lowestPrice), hightPrice),
+                              prev.priceRange[1],
+                            ],
+                          };
+                        });
+                      }}
                     />
                   </div>
                   <div>
@@ -421,21 +472,42 @@ useEffect(() => {
                       Maximum Price
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       id="max-price"
-                      min={lowestPrice}
-                      max={hightPrice}
                       className="w-full border border-gray-300 rounded-md py-1 px-2 text-sm"
-                      value={filter.priceRange[1]}
-                      onChange={(e) =>
-                        setFilter((prev) => ({
-                          ...prev,
-                          priceRange: [
-                            prev.priceRange[0],
-                            Number(e.target.value),
-                          ],
-                        }))
-                      }
+                      value={filter.priceRange[1] ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {
+                          setFilter((prev) => ({
+                            ...prev,
+                            priceRange: [
+                              prev.priceRange[0],
+                              val === "" ? null : Number(val),
+                            ],
+                          }));
+                        }
+                      }}
+                      onKeyDown={handlePriceKeyDown}
+                      onPaste={(e) => {
+                        const paste = e.clipboardData.getData("text");
+                        if (!/^\d*$/.test(paste)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onBlur={() => {
+                        setFilter((prev) => {
+                          const val = prev.priceRange[1];
+                          if (val === null) return prev;
+                          return {
+                            ...prev,
+                            priceRange: [
+                              prev.priceRange[0],
+                              Math.min(Math.max(val, lowestPrice), hightPrice),
+                            ],
+                          };
+                        });
+                      }}
                     />
                   </div>
                 </div>
@@ -447,23 +519,27 @@ useEffect(() => {
                   Colors
                 </h3>
                 <div className="space-y-2">
-                  {colors.map((color) => (
-                    <div key={color.code} className="flex items-center">
-                      <input
-                        id={`color-${color.code}`}
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
-                        checked={filter.colors.includes(color.code)}
-                        onChange={() => toggleFilter("colors", color.code)}
-                      />
-                      <label
-                        htmlFor={`color-${color.code}`}
-                        className="ml-3 text-sm text-gray-600"
-                      >
-                        {color.name}
-                      </label>
-                    </div>
-                  ))}
+                  {isProductLoading ? (
+                    <Loader />
+                  ) : (
+                    colors.map((color) => (
+                      <div key={color.code} className="flex items-center">
+                        <input
+                          id={`color-${color.code}`}
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                          checked={filter.colors.includes(color.code)}
+                          onChange={() => toggleFilter("colors", color.code)}
+                        />
+                        <label
+                          htmlFor={`color-${color.code}`}
+                          className="ml-3 text-sm text-gray-600"
+                        >
+                          {color.name}
+                        </label>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -473,19 +549,23 @@ useEffect(() => {
                   Sizes
                 </h3>
                 <div className="grid grid-cols-4 gap-2">
-                  {sizes.map((size) => (
-                    <button
-                      key={size.code}
-                      className={`py-1 px-2 text-sm font-medium rounded-md border ${
-                        filter.sizes.includes(size.code)
-                          ? "bg-gray-900 text-white border-gray-900"
-                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
-                      onClick={() => toggleFilter("sizes", size.code)}
-                    >
-                      {size.name}
-                    </button>
-                  ))}
+                  {isProductLoading ? (
+                    <Loader />
+                  ) : (
+                    sizes.map((size) => (
+                      <button
+                        key={size.code}
+                        className={`py-1 px-2 text-sm font-medium rounded-md border ${
+                          filter.sizes.includes(size.code)
+                            ? "bg-gray-900 text-white border-gray-900"
+                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                        onClick={() => toggleFilter("sizes", size.code)}
+                      >
+                        {size.name}
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -527,7 +607,7 @@ useEffect(() => {
                     </div>
 
                     {/* Product image */}
-                    <Link href={`/product`}>
+                    <Link href={`/shop/product/${item.id}`}>
                       <div className="bg-gray-50">
                         <Image
                           src={item.thumbnail}
@@ -654,7 +734,6 @@ useEffect(() => {
                   <option value="featured">Featured</option>
                   <option value="price-low-high">Price: Low to High</option>
                   <option value="price-high-low">Price: High to Low</option>
-                  <option value="newest">Newest</option>
                   <option value="rating">Top Rated</option>
                 </select>
               </div>
@@ -682,21 +761,43 @@ useEffect(() => {
                       Minimum Price
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       id="mobile-min-price"
-                      min={lowestPrice}
                       max={hightPrice}
                       className="w-full border border-gray-300 rounded-md py-1 px-2 text-sm"
-                      value={filter.priceRange[0]}
-                      onChange={(e) =>
-                        setFilter((prev) => ({
-                          ...prev,
-                          priceRange: [
-                            Number(e.target.value),
-                            prev.priceRange[1],
-                          ],
-                        }))
-                      }
+                      value={filter.priceRange[0] ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {
+                          setFilter((prev) => ({
+                            ...prev,
+                            priceRange: [
+                              val === "" ? null : Number(val),
+                              prev.priceRange[1],
+                            ],
+                          }));
+                        }
+                      }}
+                      onKeyDown={handlePriceKeyDown}
+                      onPaste={(e) => {
+                        const paste = e.clipboardData.getData("text");
+                        if (!/^\d*$/.test(paste)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onBlur={() => {
+                        setFilter((prev) => {
+                          const val = prev.priceRange[0];
+                          if (val === null) return prev;
+                          return {
+                            ...prev,
+                            priceRange: [
+                              clamp(val, lowestPrice, hightPrice),
+                              prev.priceRange[1],
+                            ],
+                          };
+                        });
+                      }}
                     />
                   </div>
                   <div>
@@ -704,21 +805,43 @@ useEffect(() => {
                       Maximum Price
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       id="mobile-max-price"
-                      min={lowestPrice}
                       max={hightPrice}
                       className="w-full border border-gray-300 rounded-md py-1 px-2 text-sm"
-                      value={filter.priceRange[1]}
-                      onChange={(e) =>
-                        setFilter((prev) => ({
-                          ...prev,
-                          priceRange: [
-                            prev.priceRange[0],
-                            Number(e.target.value),
-                          ],
-                        }))
-                      }
+                      value={filter.priceRange[1] ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {
+                          setFilter((prev) => ({
+                            ...prev,
+                            priceRange: [
+                              prev.priceRange[0],
+                              val === "" ? null : Number(val),
+                            ],
+                          }));
+                        }
+                      }}
+                      onKeyDown={handlePriceKeyDown}
+                      onPaste={(e) => {
+                        const paste = e.clipboardData.getData("text");
+                        if (!/^\d*$/.test(paste)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onBlur={() => {
+                        setFilter((prev) => {
+                          const val = prev.priceRange[1];
+                          if (val === null) return prev;
+                          return {
+                            ...prev,
+                            priceRange: [
+                              prev.priceRange[0],
+                              clamp(val, lowestPrice, hightPrice),
+                            ],
+                          };
+                        });
+                      }}
                     />
                   </div>
                 </div>

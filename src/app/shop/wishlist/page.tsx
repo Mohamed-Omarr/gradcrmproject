@@ -37,7 +37,7 @@ export default function WishlistPage() {
     if (res.data) {
       toastingSuccess(res.data.message, router.refresh);
     } else {
-      toastingSuccess(res.error);
+      toastingError(res.error);
     }
 
   };

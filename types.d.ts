@@ -175,8 +175,7 @@ type ColorOfProduct = {
 
 
 type WishlistItems = {
-    id: number,
-    product:   ShopProduct
+    product?:   ShopProduct
     productId:  number,
     customerId: string,
 }
@@ -320,4 +319,12 @@ type CRMGetAllCustomer = {
         country:string,
         addressType:string,
     }[]
+}
+
+type OrderSummary = {
+  subtotal: number;
+  shippingCost: number;
+  tax: number;
+  total: number;
+  cartItems: CartItem[];
 }

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ChevronRight, Package } from "lucide-react";
+import {  Package } from "lucide-react";
 import { useGetOrderQuery } from "../shop/redux/services/orderApi";
 import Loader from "../Loader";
 
@@ -10,6 +10,7 @@ export default function OrdersTab() {
   if (isError) {
     throw new Error("Failed to fetch orders ")
   }
+  
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Order History</h2>

@@ -72,7 +72,7 @@ function PasswordSection(AdminInfo: { email: string; id: string }) {
         confirmNewPassword: newData.confirmNewPassword,
       });
 
-      return toastingSuccess(res);
+      return toastingSuccess(res.data.message);
     } catch (err) {
       return toastingError(err);
     } finally {
